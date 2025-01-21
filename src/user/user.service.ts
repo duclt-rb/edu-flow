@@ -1,0 +1,77 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+  ) {}
+
+  async create(createUserDto: CreateUserDto) {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+    const user = { ...createUserDto, password: hashedPassword };
+    return this.userRepository.save(user);
+  }
+
+  async findAll(page: number, limit: number) {
+    const skip = Math.max((page - 1) * limit, 0);
+    const [result, total] = await this.userRepository.findAndCount({
+      skip,
+      take: limit,
+      select: ['id', 'email', 'name'],
+    });
+
+    return {
+      data: result,
+      count: total,
+      page,
+      limit,
+    };
+  }
+
+  async findOne(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+
+    return user;
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    if (updateUserDto.password) {
+      const salt = await bcrypt.genSalt();
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, salt);
+    }
+    await this.userRepository.update(id, updateUserDto);
+
+    return this.userRepository.findOne({ where: { id } });
+  }
+
+  async remove(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+
+    await this.userRepository.remove(user);
+    return { message: `User with id ${id} has been removed` };
+  }
+
+  findOneByEmail(email: string) {
+    return this.userRepository.findOne({ where: { email } });
+  }
+}
