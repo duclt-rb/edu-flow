@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": ".",
+    },
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "cSpell.words": ["pageable", "selecteds", "typeahead"],
+    "html.format.wrapAttributes": "force-aligned",
+    "editor.codeActionsOnSave": {
+      "source.addMissingImports.ts": "always",
+      "source.removeUnusedImports": "always",
+      "source.organizeImports": "always",
+      "source.sortImports": "always",
+    },
+    "editor.formatOnSave": true,
+  },
+}

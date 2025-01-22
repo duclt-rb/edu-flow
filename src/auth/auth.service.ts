@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+  ) {}
 
   async login(dto: LoginDto) {
     const { password, email } = dto;
@@ -17,10 +21,13 @@ export class AuthService {
       user.password &&
       (await bcrypt.compare(password, user.password))
     ) {
-      // Implement your logic for successful login, e.g., generating a JWT token
-      return { message: 'Login successful' };
+      const payload = { email: user.email, sub: user.id };
+
+      return {
+        access_token: this.jwtService.sign(payload),
+      };
     } else {
-      throw new Error('Invalid credentials');
+      throw new BadRequestException('Invalid credentials');
     }
   }
 }
