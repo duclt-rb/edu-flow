@@ -97,3 +97,9 @@ export const permissionSeed: { code: string; name: string }[] = [
     name: 'Delete the apartment',
   },
 ];
+export const rolePermissionSeed: { role: string; permission: string }[] = [
+  {
+    role: 'Giảng Viên',
+    permission: 'letter_received_read',
+  },
+];

@@ -32,6 +32,6 @@ export class AppModule implements OnModuleInit {
   constructor(private readonly seederService: SeederService) {}
 
   async onModuleInit() {
-    await this.seederService.seed();
+    // await this.seederService.seed();
   }
 }
