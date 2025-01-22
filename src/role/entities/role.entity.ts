@@ -1,24 +1,12 @@
 import { Column, Entity } from 'typeorm';
 
 @Entity()
-export class User {
+export class Role {
   @Column({ type: 'uuid', primary: true, generated: 'uuid' })
   id: string;
 
-  @Column()
-  name: string;
-
   @Column({ unique: true })
-  email: string;
-
-  @Column()
-  phone: string;
-
-  @Column()
-  password: string;
-
-  @Column({ default: true })
-  active: boolean;
+  name: string;
 
   @Column({ default: new Date(), type: 'timestamptz' })
   created_at: Date;
