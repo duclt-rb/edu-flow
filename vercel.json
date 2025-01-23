@@ -1,8 +1,11 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "dist",
   "functions": {
-    "api/index.ts": {
-      "runtime": "@vercel/node"
+    "src/main.ts": {
+      "runtime": "@vercel/node@latest"
     }
   },
   "rewrites": [
