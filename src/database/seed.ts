@@ -97,9 +97,12 @@ export const permissionSeed: { code: string; name: string }[] = [
     name: 'Delete the apartment',
   },
 ];
-export const rolePermissionSeed: { role: string; permission: string }[] = [
-  {
-    role: 'Giảng Viên',
-    permission: 'letter_received_read',
-  },
-];
+
+export const thutruongPermissions = permissionSeed.map(
+  (permission) => permission.code,
+);
+
+export const adminRole = {
+  email: 'admin@eduflow.com',
+  role: 'Thủ Trưởng',
+};
