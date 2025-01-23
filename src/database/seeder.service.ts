@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Permission } from 'src/role/entities/permission.entity';
 import { RolePermission } from 'src/role/entities/role-permission.entity';
 import { Role } from 'src/role/entities/role.entity';
-import { UserRole } from 'src/role/entities/user-role.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
@@ -29,9 +28,6 @@ export class SeederService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-
-    @InjectRepository(UserRole)
-    private readonly userRoleRepository: Repository<UserRole>,
   ) {}
 
   async seed() {
@@ -87,28 +83,17 @@ export class SeederService {
     }
 
     const admin = await this.userRepository.findOne({
-      where: { email: adminRole.email },
+      where: { email: adminRole.email, role_id: null },
     });
 
     if (admin) {
-      const existing = await this.userRoleRepository.findOne({
-        where: { user_id: admin.id },
+      const role = await this.roleRepository.findOne({
+        where: { name: adminRole.role },
       });
 
-      if (!existing) {
-        const role = await this.roleRepository.findOne({
-          where: { name: adminRole.role },
-        });
-
-        if (role) {
-          this.logger.log(
-            `Insert User & Role => ${admin.email} - ${role.name}`,
-          );
-          await this.userRoleRepository.save({
-            user_id: admin.id,
-            role_id: role.id,
-          });
-        }
+      if (role) {
+        this.logger.log(`Insert User & Role => ${admin.email} - ${role.name}`);
+        this.userRepository.update(admin.id, { role_id: role.id });
       }
     }
 

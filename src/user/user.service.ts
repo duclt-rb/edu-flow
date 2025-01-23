@@ -37,7 +37,18 @@ export class UserService {
     const [result, total] = await this.userRepository.findAndCount({
       skip,
       take: limit,
-      select: ['id', 'email', 'name'],
+      relations: ['role'],
+      select: {
+        id: true,
+        name: true,
+        active: true,
+        email: true,
+        phone: true,
+        role: {
+          id: true,
+          name: true,
+        },
+      },
     });
 
     return {
@@ -85,6 +96,24 @@ export class UserService {
   }
 
   findOneByEmail(email: string) {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['role', 'role.permissions'],
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        active: true,
+        phone: true,
+        password: true,
+        role: {
+          id: true,
+          name: true,
+          permissions: {
+            code: true,
+          },
+        },
+      },
+    });
   }
 }

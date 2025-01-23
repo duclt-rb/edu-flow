@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { map } from 'lodash';
 import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dto/login.dto';
 
@@ -21,7 +22,15 @@ export class AuthService {
       user.password &&
       (await bcrypt.compare(password, user.password))
     ) {
-      const payload = { email: user.email, sub: user.id };
+      const payload = {
+        email: user.email,
+        sub: user.id,
+        role: { id: user.role.id, name: user.role.name },
+        permissions: map(
+          user.role.permissions,
+          (permission) => permission.code,
+        ),
+      };
 
       return {
         access_token: this.jwtService.sign(payload),
