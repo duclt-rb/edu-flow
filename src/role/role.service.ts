@@ -30,7 +30,6 @@ export class RoleService {
         permission_id: permission,
       });
     }
-
     return role;
   }
 

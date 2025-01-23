@@ -9,6 +9,7 @@ import { PermissionService } from './permission.service';
 import { RoleController } from './role.controller';
 import { RoleService } from './role.service';
 import { PermissionValidator } from './validators/permission-validator';
+import { UniqueRoleValidator } from './validators/unique-role';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Role, Permission, RolePermission, User])],
@@ -18,6 +19,7 @@ import { PermissionValidator } from './validators/permission-validator';
     PermissionService,
     SeederService,
     PermissionValidator,
+    UniqueRoleValidator,
   ],
   exports: [RoleService, PermissionService, SeederService],
 })
