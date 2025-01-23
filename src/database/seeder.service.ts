@@ -4,12 +4,14 @@ import { Permission } from 'src/role/entities/permission.entity';
 import { RolePermission } from 'src/role/entities/role-permission.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import {
   adminRole,
+  giangvienPermissions,
   permissionSeed,
   roleSeed,
   thutruongPermissions,
+  vanthuPermissions,
 } from './seed';
 
 @Injectable()
@@ -60,30 +62,15 @@ export class SeederService {
       }
     }
 
-    const thuTruongRole = await this.roleRepository.findOne({
-      where: { name: 'Thủ Trưởng' },
-    });
-
-    if (thuTruongRole) {
-      for (const permission of thutruongPermissions) {
-        const permissionExists = await this.rolePermissionRepository.findOne({
-          where: { permission_id: permission, role_id: thuTruongRole.id },
-        });
-
-        if (!permissionExists) {
-          this.logger.log(
-            `Insert Role & Permission => ${thuTruongRole.name} - ${permission}`,
-          );
-          await this.rolePermissionRepository.save({
-            permission_id: permission,
-            role_id: thuTruongRole.id,
-          });
-        }
-      }
-    }
+    await this.seedRoleWithPermissions('Thủ Trưởng', thutruongPermissions);
+    await this.seedRoleWithPermissions('Giảng Viên', giangvienPermissions);
+    await this.seedRoleWithPermissions('Văn Thư', vanthuPermissions);
 
     const admin = await this.userRepository.findOne({
-      where: { email: adminRole.email, role_id: null },
+      where: {
+        email: adminRole.email,
+        role_id: IsNull(),
+      },
     });
 
     if (admin) {
@@ -98,5 +85,32 @@ export class SeederService {
     }
 
     this.logger.log('Role & Permission seeding completed.');
+  }
+
+  private async seedRoleWithPermissions(
+    roleName: string,
+    permissions: string[],
+  ) {
+    const role = await this.roleRepository.findOne({
+      where: { name: roleName },
+    });
+
+    if (role) {
+      for (const permission of permissions) {
+        const permissionExists = await this.rolePermissionRepository.findOne({
+          where: { permission_id: permission, role_id: role.id },
+        });
+
+        if (!permissionExists) {
+          this.logger.log(
+            `Insert Role & Permission => ${role.name} - ${permission}`,
+          );
+          await this.rolePermissionRepository.save({
+            permission_id: permission,
+            role_id: role.id,
+          });
+        }
+      }
+    }
   }
 }

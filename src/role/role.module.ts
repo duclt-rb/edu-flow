@@ -8,11 +8,17 @@ import { Role } from './entities/role.entity';
 import { PermissionService } from './permission.service';
 import { RoleController } from './role.controller';
 import { RoleService } from './role.service';
+import { PermissionValidator } from './validators/permission-validator';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Role, Permission, RolePermission, User])],
   controllers: [RoleController],
-  providers: [RoleService, PermissionService, SeederService],
+  providers: [
+    RoleService,
+    PermissionService,
+    SeederService,
+    PermissionValidator,
+  ],
   exports: [RoleService, PermissionService, SeederService],
 })
 export class RoleModule {}

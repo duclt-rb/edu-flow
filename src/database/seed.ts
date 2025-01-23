@@ -17,6 +17,10 @@ export const permissionSeed: { code: string; name: string }[] = [
     name: 'Delete the received letter',
   },
   {
+    code: 'letter_received_approval',
+    name: 'Approval the received letter',
+  },
+  {
     code: 'letter_sent_read',
     name: 'Read the sent letter',
   },
@@ -31,6 +35,10 @@ export const permissionSeed: { code: string; name: string }[] = [
   {
     code: 'letter_sent_delete',
     name: 'Delete the sent letter',
+  },
+  {
+    code: 'letter_send_approval',
+    name: 'Approval the sent letter',
   },
   {
     code: 'user_read',
@@ -101,6 +109,37 @@ export const permissionSeed: { code: string; name: string }[] = [
 export const thutruongPermissions = permissionSeed.map(
   (permission) => permission.code,
 );
+
+export const vanthuPermissions = [
+  'letter_received_read',
+  'letter_received_create',
+  'letter_received_update',
+  'letter_sent_read',
+  'letter_sent_create',
+  'letter_sent_update',
+  'user_read',
+  'user_create',
+  'user_update',
+  'user_delete',
+  'role_read',
+  'category_read',
+  'category_create',
+  'category_update',
+  'category_delete',
+  'apartment_read',
+  'apartment_create',
+  'apartment_update',
+  'apartment_delete',
+];
+
+export const giangvienPermissions = [
+  'letter_received_read',
+  'letter_sent_read',
+  'user_read',
+  'role_read',
+  'category_read',
+  'apartment_read',
+];
 
 export const adminRole = {
   email: 'admin@eduflow.com',
