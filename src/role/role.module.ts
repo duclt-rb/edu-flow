@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SeederService } from 'src/database/seeder.service';
-import { User } from 'src/user/entities/user.entity';
+import { SeederService } from '../database/seeder.service';
+import { User } from '../user/entities/user.entity';
 import { Permission } from './entities/permission.entity';
 import { RolePermission } from './entities/role-permission.entity';
 import { Role } from './entities/role.entity';
