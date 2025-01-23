@@ -18,7 +18,17 @@ export class RoleService {
   }
 
   async findAll() {
-    return await this.roleRepository.find();
+    return await this.roleRepository.find({
+      relations: ['permissions'],
+      select: {
+        id: true,
+        name: true,
+        permissions: {
+          code: true,
+          name: true,
+        },
+      },
+    });
   }
 
   async findOne(id: string) {
