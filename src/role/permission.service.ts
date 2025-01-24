@@ -20,6 +20,10 @@ export class PermissionService {
       code: In(permissionCodes),
     });
 
-    return isEmpty(permissions);
+    const missingPermissions = permissionCodes.filter(
+      (code) => !permissions.some((permission) => permission.code === code),
+    );
+
+    return isEmpty(missingPermissions);
   }
 }

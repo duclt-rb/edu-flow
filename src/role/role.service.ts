@@ -72,4 +72,8 @@ export class RoleService {
     }
     return { deleted: true };
   }
+
+  async findByName(name: string) {
+    return await this.roleRepository.findOne({ where: { name } });
+  }
 }

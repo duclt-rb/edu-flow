@@ -27,7 +27,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async me(@Request() req: any) {
     const authHeader = req.headers.authorization;
-    const token = authHeader.split(' ')[1];
+    const [, token] = authHeader.split(' ');
 
     return {
       payload: this.jwtService.decode(token),

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   registerDecorator,
   ValidationOptions,
@@ -7,27 +6,20 @@ import {
   ValidatorConstraintInterface,
 } from 'class-validator';
 import { isEmpty } from 'lodash';
-import { In, Repository } from 'typeorm';
-import { Permission } from '../entities/permission.entity';
+import { PermissionService } from '../permission.service';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class PermissionValidator implements ValidatorConstraintInterface {
-  constructor(
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
-  ) {}
+  constructor(private readonly permissionService: PermissionService) {}
 
   async validate(permissionCodes: string[]) {
     if (isEmpty(permissionCodes)) {
       return true;
     }
 
-    const permissions = await this.permissionRepository.findBy({
-      code: In(permissionCodes),
-    });
-
-    return isEmpty(permissions);
+    const isExist = await this.permissionService.exists(permissionCodes);
+    return isExist;
   }
 
   defaultMessage() {

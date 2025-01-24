@@ -15,12 +15,12 @@ import { UniqueRoleValidator } from './validators/unique-role';
   imports: [TypeOrmModule.forFeature([Role, Permission, RolePermission, User])],
   controllers: [RoleController],
   providers: [
+    PermissionValidator,
+    UniqueRoleValidator,
     RoleService,
     PermissionService,
     SeederService,
-    PermissionValidator,
-    UniqueRoleValidator,
   ],
-  exports: [RoleService, PermissionService, SeederService],
+  exports: [RoleService, PermissionService, SeederService, TypeOrmModule],
 })
 export class RoleModule {}

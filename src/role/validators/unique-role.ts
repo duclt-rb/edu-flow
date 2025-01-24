@@ -1,24 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   registerDecorator,
   ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Repository } from 'typeorm';
-import { Role } from '../entities/role.entity';
+import { RoleService } from '../role.service';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class UniqueRoleValidator implements ValidatorConstraintInterface {
-  constructor(
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
-  ) {}
+  constructor(private readonly roleService: RoleService) {}
 
   async validate(name: string) {
-    const isUnique = await this.roleRepository.findOneBy({ name });
+    const isUnique = await this.roleService.findByName(name);
 
     return !isUnique;
   }
