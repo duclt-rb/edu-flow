@@ -48,7 +48,18 @@ export class RoleService {
   }
 
   async findOne(id: string) {
-    const role = await this.roleRepository.findOne({ where: { id } });
+    const role = await this.roleRepository.findOne({
+      where: { id },
+      relations: ['permissions'],
+      select: {
+        id: true,
+        name: true,
+        permissions: {
+          code: true,
+          name: true,
+        },
+      },
+    });
     if (!role) {
       throw new NotFoundException(`Role with ID ${id} not found`);
     }
@@ -56,24 +67,47 @@ export class RoleService {
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto) {
-    const result = await this.roleRepository.update(id, {
-      name: updateRoleDto.name,
-    });
-    if (result.affected === 0) {
-      throw new NotFoundException(`Role with ID ${id} not found`);
+    if (updateRoleDto.name) {
+      const result = await this.roleRepository.update(id, {
+        name: updateRoleDto.name,
+      });
+
+      if (result.affected === 0) {
+        throw new NotFoundException(`Role with ID ${id} not found`);
+      }
     }
+
+    if (updateRoleDto.permissions) {
+      // Update role-permission relationships
+      await this.rolePermissionRepository.delete({
+        role_id: id,
+      });
+
+      for (const permission of updateRoleDto.permissions) {
+        const rolePermission = this.rolePermissionRepository.create({
+          role_id: id,
+          permission_id: permission,
+        });
+        await this.rolePermissionRepository.save(rolePermission);
+      }
+    }
+
     return await this.findOne(id);
   }
 
   async remove(id: string) {
+    // Delete related role-permission entries
+    await this.rolePermissionRepository.delete({ role_id: id });
+
     const result = await this.roleRepository.delete(id);
+
     if (result.affected === 0) {
       throw new NotFoundException(`Role with ID ${id} not found`);
     }
     return { deleted: true };
   }
 
-  async findByName(name: string) {
-    return await this.roleRepository.findOne({ where: { name } });
+  async findByName(name: string, id?: string) {
+    return await this.roleRepository.findOne({ where: { name, id } });
   }
 }
