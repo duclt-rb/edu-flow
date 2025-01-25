@@ -1,7 +1,7 @@
 import { Column, Entity } from 'typeorm';
 
 @Entity()
-export class Faculty {
+export class Directory {
   @Column({ type: 'uuid', primary: true })
   id: string;
 
@@ -11,17 +11,12 @@ export class Faculty {
   @Column({ unique: true })
   abbreviation: string;
 
-  @Column({ type: 'enum', enum: ['faculty', 'department'] })
-  type: string;
-
-  @Column({ name: 'parent_id', nullable: true })
-  parentId: string;
+  @Column({ default: true })
+  active: boolean;
 
   @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
   @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
-
-  children: Faculty[];
 }

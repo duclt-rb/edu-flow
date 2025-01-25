@@ -43,7 +43,7 @@ export class FacultyService {
 
     query.andWhere({ parentId: IsNull() });
 
-    query.skip(((page || 1) - 1) * limit).take(limit);
+    query.skip(((page || 1) - 1) * (limit || 10)).take(limit || 10);
 
     const [result, total] = await query.getManyAndCount();
 
@@ -96,7 +96,15 @@ export class FacultyService {
     return this.facultyRepository.findOne({ where: { id } });
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} faculty`;
+  async remove(id: string) {
+    const faculty = await this.facultyRepository.findOne({ where: { id } });
+
+    if (!faculty) {
+      throw new BadRequestException('Faculty not found');
+    }
+
+    await this.facultyRepository.delete(id);
+
+    return { message: 'Faculty removed successfully' };
   }
 }

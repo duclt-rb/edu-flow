@@ -33,10 +33,10 @@ export class UserService {
   }
 
   async findAll(page: number, limit: number) {
-    const skip = Math.max((page - 1) * limit, 0);
+    const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
     const [result, total] = await this.userRepository.findAndCount({
       skip,
-      take: limit,
+      take: limit || 10,
       relations: ['role'],
       select: {
         id: true,

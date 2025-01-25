@@ -8,6 +8,7 @@ import { SeederService } from './database/seeder.service';
 import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
 import { FacultyModule } from './faculty/faculty.module';
+import { DirectoryModule } from './directory/directory.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { FacultyModule } from './faculty/faculty.module';
     AuthModule,
     RoleModule,
     FacultyModule,
+    DirectoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

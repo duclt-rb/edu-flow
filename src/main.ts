@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { useContainer } from 'class-validator';
 import { join } from 'path';
+import { DatabaseExceptionFilter } from './app.filter';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -19,6 +20,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new DatabaseExceptionFilter());
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
