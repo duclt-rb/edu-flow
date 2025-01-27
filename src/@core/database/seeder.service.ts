@@ -69,7 +69,7 @@ export class SeederService {
     const admin = await this.userRepository.findOne({
       where: {
         email: adminRole.email,
-        role_id: IsNull(),
+        roleId: IsNull(),
       },
     });
 
@@ -80,7 +80,7 @@ export class SeederService {
 
       if (role) {
         this.logger.log(`Insert User & Role => ${admin.email} - ${role.name}`);
-        this.userRepository.update(admin.id, { role_id: role.id });
+        this.userRepository.update(admin.id, { roleId: role.id });
       }
     }
 

@@ -18,11 +18,20 @@ export class User {
   @Column()
   password: string;
 
+  @Column()
+  avatar: string;
+
+  @Column()
+  gender: string;
+
+  @Column()
+  address: string;
+
   @Column({ default: true })
   active: boolean;
 
-  @Column({ type: 'uuid' })
-  role_id: string;
+  @Column({ type: 'uuid', name: 'role_id' })
+  roleId: string;
 
   @ManyToOne(() => Role, (role) => role.id)
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
