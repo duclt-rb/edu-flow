@@ -41,7 +41,6 @@ export class RoleService {
         name: true,
         permissions: {
           code: true,
-          name: true,
         },
       },
     });

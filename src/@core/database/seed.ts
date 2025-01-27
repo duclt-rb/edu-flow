@@ -21,6 +21,10 @@ export const permissionSeed: { code: string; name: string }[] = [
     name: 'Approval the received letter',
   },
   {
+    code: 'letter_received_shared',
+    name: 'Share task for the received letter',
+  },
+  {
     code: 'letter_sent_read',
     name: 'Read the sent letter',
   },
@@ -37,8 +41,12 @@ export const permissionSeed: { code: string; name: string }[] = [
     name: 'Delete the sent letter',
   },
   {
-    code: 'letter_send_approval',
+    code: 'letter_sent_approval',
     name: 'Approval the sent letter',
+  },
+  {
+    code: 'letter_sent_shared',
+    name: 'Share task for the sent letter',
   },
   {
     code: 'user_read',

@@ -1,14 +1,14 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SeederService } from './@core/database/seeder.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { SeederService } from './database/seeder.service';
+import { DirectoryModule } from './directory/directory.module';
+import { FacultyModule } from './faculty/faculty.module';
 import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
-import { FacultyModule } from './faculty/faculty.module';
-import { DirectoryModule } from './directory/directory.module';
 
 @Module({
   imports: [
@@ -28,6 +28,7 @@ import { DirectoryModule } from './directory/directory.module';
     RoleModule,
     FacultyModule,
     DirectoryModule,
+    // LetterModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -36,7 +37,7 @@ export class AppModule implements OnModuleInit {
   constructor(private readonly seederService: SeederService) {}
 
   async onModuleInit() {
-    if (process.env.NODE_ENV === 'development' && false) {
+    if (process.env.NODE_ENV === 'development' && true) {
       await this.seederService.seed();
     }
   }

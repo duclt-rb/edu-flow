@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Permission } from 'src/role/entities/permission.entity';
+import { RolePermission } from 'src/role/entities/role-permission.entity';
+import { Role } from 'src/role/entities/role.entity';
+import { User } from 'src/user/entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
-import { Permission } from '../role/entities/permission.entity';
-import { RolePermission } from '../role/entities/role-permission.entity';
-import { Role } from '../role/entities/role.entity';
-import { User } from '../user/entities/user.entity';
 import {
   adminRole,
   giangvienPermissions,
