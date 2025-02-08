@@ -15,11 +15,11 @@ import { UserModule } from './user/user.module';
   imports: [
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.mailersend.net',
-        port: 587,
+        host: 'smtp.gmail.com',
+        port: 465,
         auth: {
-          user: 'MS_lIE9zp@trial-vywj2lprxej47oqz.mlsender.net',
-          pass: 'mssp.jlJOZII.k68zxl20nw9gj905.xfbvHZF',
+          user: 'xuannganle6868@gmail.com',
+          pass: '5896Ng@nle',
         },
       },
     }),

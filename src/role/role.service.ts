@@ -82,13 +82,12 @@ export class RoleService {
         role_id: id,
       });
 
-      for (const permission of updateRoleDto.permissions) {
-        const rolePermission = this.rolePermissionRepository.create({
-          role_id: id,
-          permission_id: permission,
-        });
-        await this.rolePermissionRepository.save(rolePermission);
-      }
+      const rolePermissions = updateRoleDto.permissions.map((permission) => ({
+        role_id: id,
+        permission_id: permission,
+      }));
+
+      await this.rolePermissionRepository.save(rolePermissions);
     }
 
     return await this.findOne(id);
