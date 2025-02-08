@@ -1,11 +1,19 @@
 import { Directory } from 'src/directory/entities/directory.entity';
 import { Faculty } from 'src/faculty/entities/faculty.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Letter {
-  @Column({ type: 'uuid', primary: true })
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
@@ -13,22 +21,6 @@ export class Letter {
 
   @Column()
   title: string;
-
-  @Column({
-    type: 'enum',
-    enum: [
-      'draft',
-      'awaiting_response',
-      'no_reply',
-      'awaiting_signature',
-      'in_progress',
-      'work_done',
-      'awaiting_approval',
-      'approved',
-      'rejected',
-    ],
-  })
-  status: string;
 
   @Column({ type: 'enum', enum: ['reply', 'noreply'] })
   type: string;
@@ -48,51 +40,80 @@ export class Letter {
   @Column({ name: 'due_date', type: 'timestamptz' })
   dueDate: Date;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  updated_at: Date;
+  @Column({
+    name: 'updated_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: Date;
 
   @Column({ name: 'directory_id' })
   directoryId: string;
 
-  @ManyToOne(() => Directory, (directory) => directory.id)
-  directory: Directory;
+  @Column({ name: 'sending_faculty_id' })
+  sendingFacultyId: string;
 
-  @Column({ name: 'sender_id' })
-  senderId: string;
-
-  @ManyToOne(() => User, (user) => user.id)
-  sender: User;
-
-  @Column()
-  recipient_id: string;
-
-  @ManyToOne(() => User, (user) => user.id)
-  recipient: User;
+  @Column({ name: 'receiving_faculty_id' })
+  receivingFacultyId: string;
 
   @Column({ name: 'resolver_id' })
-  resolver_id: string;
+  resolverId: string;
+
+  @Column({
+    type: 'enum',
+    enum: [
+      'draft',
+      'awaiting_response',
+      'no_reply',
+      'awaiting_signature',
+      'in_progress',
+      'work_done',
+      'awaiting_approval',
+      'approved',
+      'rejected',
+    ],
+  })
+  status: string;
+
+  @ManyToOne(() => Directory, (directory) => directory.id)
+  @JoinColumn({ name: 'directory_id' })
+  directory: Directory;
+
+  @ManyToMany(() => User, (user) => user.recipientUsers, { cascade: true })
+  @JoinTable({
+    name: 'letter_recipient_user',
+    joinColumn: { name: 'letter_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
+  })
+  recipients: User[];
+
+  @ManyToMany(() => User, (user) => user.relatedUsers, {
+    cascade: true,
+    nullable: true,
+  })
+  @JoinTable({
+    name: 'letter_related_user',
+    joinColumn: { name: 'letter_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
+  })
+  relatedUsers: User[];
 
   @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: 'resolver_id' })
   resolver: User;
 
-  @Column({ name: 'sending_unit_id' })
-  sendingUnitId: string;
+  @ManyToOne(() => Faculty, (faculty) => faculty.id)
+  @JoinColumn({ name: 'sending_faculty_id' })
+  sendingFaculty: Faculty;
 
   @ManyToOne(() => Faculty, (faculty) => faculty.id)
-  sendingUnit: Faculty;
-
-  @Column({ name: 'receiving_unit_id' })
-  receivingUnitId: string;
-
-  @ManyToOne(() => Faculty, (faculty) => faculty.id)
-  receivingUnit: Faculty;
-
-  @Column({ name: 'related_unit_id' })
-  relatedUnitId: string[];
-
-  @ManyToOne(() => Faculty, (faculty) => faculty.id)
-  relatedUnit: Faculty[];
+  @JoinColumn({ name: 'receiving_faculty_id' })
+  receivingFaculty: Faculty;
 }

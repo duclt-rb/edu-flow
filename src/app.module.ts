@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DirectoryModule } from './directory/directory.module';
 import { FacultyModule } from './faculty/faculty.module';
+import { LetterModule } from './letter/letter.module';
 import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
 
@@ -40,7 +41,7 @@ import { UserModule } from './user/user.module';
     RoleModule,
     FacultyModule,
     DirectoryModule,
-    // LetterModule,
+    LetterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

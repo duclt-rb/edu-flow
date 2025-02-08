@@ -1,5 +1,6 @@
 import { Faculty } from 'src/faculty/entities/faculty.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Letter } from 'src/letter/entities/letter.entity';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne } from 'typeorm';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
@@ -57,4 +58,10 @@ export class User {
 
   @Column({ default: new Date(), type: 'timestamptz' })
   updated_at: Date;
+
+  @ManyToMany(() => Letter, (letter) => letter.relatedUsers)
+  relatedUsers: Letter[];
+
+  @ManyToMany(() => Letter, (letter) => letter.recipients)
+  recipientUsers: Letter[];
 }
