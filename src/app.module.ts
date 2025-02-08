@@ -13,16 +13,6 @@ import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: 'smtp.gmail.com',
-        port: 465,
-        auth: {
-          user: 'xuannganle6868@gmail.com',
-          pass: '5896Ng@nle',
-        },
-      },
-    }),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -33,6 +23,17 @@ import { UserModule } from './user/user.module';
       database: process.env.DB_NAME,
       schema: 'public',
       autoLoadEntities: true,
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.MAIL_HOST,
+        port: parseInt(process.env.MAIL_PORT),
+        secure: true,
+        auth: {
+          user: process.env.MAIL_USERNAME,
+          pass: process.env.MAIL_PASSWORD,
+        },
+      },
     }),
     UserModule,
     AuthModule,

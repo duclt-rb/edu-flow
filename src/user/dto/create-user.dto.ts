@@ -18,6 +18,7 @@ export class CreateUserDto {
 
   @IsString()
   @MinLength(6)
+  @IsOptional()
   password: string;
 
   @IsEmail()
@@ -41,4 +42,12 @@ export class CreateUserDto {
 
   @IsString()
   roleId: string;
+
+  @IsString()
+  @IsOptional()
+  facultyId: string;
+
+  @IsString()
+  @IsOptional()
+  departmentId: string;
 }
