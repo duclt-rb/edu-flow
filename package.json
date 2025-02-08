@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^10.0.0",
@@ -33,6 +34,7 @@
     "class-validator": "^0.14.1",
     "hbs": "^4.2.0",
     "lodash": "^4.17.21",
+    "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -42,14 +44,15 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.14",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
     "@types/express": "^5.0.0",
     "@types/hbs": "^4.0.4",
     "@types/jest": "^29.5.2",
+    "@types/lodash": "^4.17.14",
     "@types/node": "^20.3.1",
+    "@types/nodemailer": "^6.4.17",
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

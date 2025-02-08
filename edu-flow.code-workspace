@@ -17,6 +17,7 @@
       "source.sortImports": "always",
     },
     "editor.formatOnSave": true,
+    "postman.settings.dotenv-detection-notification-visibility": false,
   },
   "launch": {
     "version": "0.2.0",

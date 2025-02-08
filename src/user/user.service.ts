@@ -1,3 +1,4 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import {
   BadRequestException,
   Injectable,
@@ -14,6 +15,7 @@ import { User } from './entities/user.entity';
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly mailerService: MailerService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -28,6 +30,18 @@ export class UserService {
     if (existingUser) {
       throw new BadRequestException('Email already in use');
     }
+
+    // try {
+    //   await this.mailerService.sendMail({
+    //     to: 'duclt.rb@gmail.com',
+    //     from: 'no-reply@trial-vywj2lprxej47oqz.mlsender.net',
+    //     subject: 'Welcome to our platform',
+    //     text: 'Hello, welcome to our platform!',
+    //   });
+    // } catch (error) {
+    //   console.error(error);
+    //   throw new BadRequestException('Failed to send email');
+    // }
 
     return this.userRepository.save(user);
   }
