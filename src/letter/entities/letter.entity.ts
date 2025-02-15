@@ -13,7 +13,7 @@ import {
 
 @Entity()
 export class Letter {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'int8' })
   id: string;
 
   @Column()

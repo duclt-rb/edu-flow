@@ -23,6 +23,11 @@ export class AuthService {
       (await bcrypt.compare(password, user.password))
     ) {
       const payload = {
+        avatar: user.avatar,
+        name: user.name,
+        phone: user.phone,
+        address: user.address,
+        gender: user.gender,
         email: user.email,
         sub: user.id,
         role: { id: user.role.id, name: user.role.name },
@@ -30,6 +35,8 @@ export class AuthService {
           user.role.permissions,
           (permission) => permission.code,
         ),
+        faculty: user.faculty || [],
+        department: user.department || [],
       };
 
       return {

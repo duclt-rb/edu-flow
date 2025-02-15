@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isEmpty } from 'lodash';
 import { User } from 'src/user/entities/user.entity';
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { CreateLetterDto } from './dto/create-letter.dto';
+import { GetLetterDto } from './dto/get-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { Letter } from './entities/letter.entity';
 
@@ -12,11 +14,8 @@ const selectColumn = {
   title: true,
   type: true,
   form: true,
-  archive: true,
-  delete: true,
   description: true,
-  createdAt: true,
-  updatedAt: true,
+  status: true,
   directory: {
     id: true,
     name: true,
@@ -32,10 +31,12 @@ const selectColumn = {
   recipients: {
     id: true,
     name: true,
+    email: true,
   },
   resolver: {
     id: true,
     name: true,
+    email: true,
   },
   dueDate: true,
   relatedUsers: {
@@ -43,7 +44,10 @@ const selectColumn = {
     name: true,
     email: true,
   },
-  status: true,
+  archive: true,
+  delete: true,
+  createdAt: true,
+  updatedAt: true,
 };
 
 @Injectable()
@@ -74,8 +78,38 @@ export class LetterService {
     return await this.letterRepository.save(letter);
   }
 
-  async findAll(): Promise<Letter[]> {
-    return await this.letterRepository.find({
+  async findAll(query: GetLetterDto) {
+    const { page, limit, keyword, ...where } = query;
+    const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
+    const [result, count] = await this.letterRepository.findAndCount({
+      relations: [
+        'sendingFaculty',
+        'receivingFaculty',
+        'directory',
+        'resolver',
+        'relatedUsers',
+        'recipients',
+      ],
+      select: selectColumn,
+      take: limit || 10,
+      skip,
+      where: {
+        ...where,
+        ...(keyword ? { title: ILike(`%${keyword}%`) } : {}),
+      },
+    });
+
+    return {
+      data: result,
+      count,
+      page,
+      limit,
+    };
+  }
+
+  async findOne(id: string): Promise<Letter> {
+    return await this.letterRepository.findOne({
+      where: { id },
       relations: [
         'sendingFaculty',
         'receivingFaculty',
@@ -88,17 +122,12 @@ export class LetterService {
     });
   }
 
-  async findOne(id: string): Promise<Letter> {
-    return await this.letterRepository.findOne({
-      where: { id },
-      select: selectColumn,
-    });
-  }
-
   async update(id: string, updateLetterDto: UpdateLetterDto): Promise<Letter> {
     const { relatedUserId, recipients, ...dto } = updateLetterDto;
 
-    await this.letterRepository.update(id, dto);
+    if (!isEmpty(dto)) {
+      await this.letterRepository.update(id, dto);
+    }
 
     const letter = await this.letterRepository.findOneOrFail({
       where: { id },

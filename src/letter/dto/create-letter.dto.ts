@@ -17,6 +17,10 @@ export enum LetterForm {
   RECEIVE = 'receive',
 }
 
+export enum LetterStatus {
+  DRAFT = 'draft',
+}
+
 export class CreateLetterDto {
   @IsString()
   @IsOptional()

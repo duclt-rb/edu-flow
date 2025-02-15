@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import { join } from 'path';
 import { DatabaseExceptionFilter } from './app.filter';
@@ -12,6 +13,14 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
   });
+
+  const config = new DocumentBuilder()
+    .setTitle('Edu Flow')
+    .setDescription('Edu flow API description')
+    .setVersion('1.0')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
 
   app.useGlobalPipes(
     new ValidationPipe({

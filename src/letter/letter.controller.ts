@@ -6,8 +6,10 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateLetterDto } from './dto/create-letter.dto';
+import { GetLetterDto } from './dto/get-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { LetterService } from './letter.service';
 
@@ -21,8 +23,8 @@ export class LetterController {
   }
 
   @Get()
-  findAll() {
-    return this.letterService.findAll();
+  findAll(@Query() query: GetLetterDto) {
+    return this.letterService.findAll(query);
   }
 
   @Get(':id')

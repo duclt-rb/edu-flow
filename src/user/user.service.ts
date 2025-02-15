@@ -138,29 +138,6 @@ export class UserService {
     return this.userRepository.findOne({
       where: { email },
       relations: ['role', 'role.permissions', 'faculty', 'department'],
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        active: true,
-        phone: true,
-        password: true,
-        role: {
-          id: true,
-          name: true,
-          permissions: {
-            code: true,
-          },
-        },
-        faculty: {
-          id: true,
-          name: true,
-        },
-        department: {
-          id: true,
-          name: true,
-        },
-      },
     });
   }
 }
