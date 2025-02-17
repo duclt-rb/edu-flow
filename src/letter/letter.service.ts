@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
+import { JwtUser } from 'src/auth/jwt.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { ILike, In, Repository } from 'typeorm';
 import { CreateLetterDto } from './dto/create-letter.dto';
@@ -60,7 +61,10 @@ export class LetterService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createLetterDto: CreateLetterDto): Promise<Letter> {
+  async create(
+    createLetterDto: CreateLetterDto,
+    user: JwtUser,
+  ): Promise<Letter> {
     const { relatedUserId, recipients, ...dto } = createLetterDto;
 
     const relatedUsers = await this.userRepository.find({
@@ -74,6 +78,7 @@ export class LetterService {
     const letter = this.letterRepository.create(dto);
     letter.relatedUsers = relatedUsers;
     letter.recipients = recipientUsers;
+    letter.senderId = user.id;
 
     return await this.letterRepository.save(letter);
   }

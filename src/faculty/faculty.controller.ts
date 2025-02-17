@@ -7,12 +7,15 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { CreateFacultyDto } from './dto/create-faculty.dto';
 import { UpdateFacultyDto } from './dto/update-faculty.dto';
 import { FacultyService } from './faculty.service';
 
 @Controller('faculty')
+@UseGuards(AuthGuard('jwt'))
 export class FacultyController {
   constructor(private readonly facultyService: FacultyService) {}
 

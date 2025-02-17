@@ -7,19 +7,26 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { CurrentUser, JwtUser } from 'src/auth/jwt.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { CreateLetterDto } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { LetterService } from './letter.service';
 
 @Controller('letter')
+@UseGuards(JwtAuthGuard)
 export class LetterController {
   constructor(private readonly letterService: LetterService) {}
 
   @Post()
-  create(@Body() createLetterDto: CreateLetterDto) {
-    return this.letterService.create(createLetterDto);
+  create(
+    @Body() createLetterDto: CreateLetterDto,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.letterService.create(createLetterDto, user);
   }
 
   @Get()

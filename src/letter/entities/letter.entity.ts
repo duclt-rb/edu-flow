@@ -66,10 +66,12 @@ export class Letter {
   @Column({ name: 'resolver_id' })
   resolverId: string;
 
+  @Column({ name: 'sender_id' })
+  senderId: string;
+
   @Column({
     type: 'enum',
     enum: [
-      'draft',
       'awaiting_response',
       'no_reply',
       'awaiting_signature',
@@ -78,6 +80,7 @@ export class Letter {
       'awaiting_approval',
       'approved',
       'rejected',
+      'overdue',
     ],
   })
   status: string;
@@ -108,6 +111,10 @@ export class Letter {
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'resolver_id' })
   resolver: User;
+
+  @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: 'sender_id' })
+  sender: User;
 
   @ManyToOne(() => Faculty, (faculty) => faculty.id)
   @JoinColumn({ name: 'sending_faculty_id' })

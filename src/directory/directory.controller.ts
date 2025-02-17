@@ -7,12 +7,15 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { DirectoryService } from './directory.service';
 import { CreateDirectoryDto } from './dto/create-directory.dto';
 import { UpdateDirectoryDto } from './dto/update-directory.dto';
 
 @Controller('directory')
+@UseGuards(AuthGuard('jwt'))
 export class DirectoryController {
   constructor(private readonly directoryService: DirectoryService) {}
 
