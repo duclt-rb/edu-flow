@@ -155,7 +155,9 @@ export class LetterService {
     return this.findOne(id);
   }
 
-  async remove(id: string): Promise<void> {
-    await this.letterRepository.delete(id);
+  async remove(id: string) {
+    const result = await this.letterRepository.delete(id);
+
+    return { success: result.affected > 0 };
   }
 }

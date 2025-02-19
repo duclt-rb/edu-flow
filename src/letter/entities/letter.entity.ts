@@ -89,7 +89,7 @@ export class Letter {
   @JoinColumn({ name: 'directory_id' })
   directory: Directory;
 
-  @ManyToMany(() => User, (user) => user.recipientUsers, { cascade: true })
+  @ManyToMany(() => User, (user) => user.recipientUsers)
   @JoinTable({
     name: 'letter_recipient_user',
     joinColumn: { name: 'letter_id', referencedColumnName: 'id' },
@@ -97,10 +97,7 @@ export class Letter {
   })
   recipients: User[];
 
-  @ManyToMany(() => User, (user) => user.relatedUsers, {
-    cascade: true,
-    nullable: true,
-  })
+  @ManyToMany(() => User, (user) => user.relatedUsers)
   @JoinTable({
     name: 'letter_related_user',
     joinColumn: { name: 'letter_id', referencedColumnName: 'id' },
