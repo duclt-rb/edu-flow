@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
+import { JwtAuthGuard } from 'src/auth/jwt.strategy';
 import { UserModule } from 'src/user/user.module';
 import { Letter } from './entities/letter.entity';
 import { LetterController } from './letter.controller';

@@ -1,5 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { AuthGuard, PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtUser } from './jwt.decorator';
 
@@ -15,5 +19,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any): Promise<JwtUser> {
     return { id: payload.sub, email: payload.email };
+  }
+}
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  canActivate(context: ExecutionContext) {
+    return super.canActivate(context);
+  }
+
+  handleRequest(err, user) {
+    if (err || !user) {
+      throw new UnauthorizedException('Invalid or missing token');
+    }
+
+    return user;
   }
 }
