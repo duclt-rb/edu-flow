@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
-import { JwtUser } from 'src/auth/jwt.decorator';
+import { JwtUser } from 'src/auth/jwt.strategy';
 import { User } from 'src/user/entities/user.entity';
 import { ILike, In, Repository } from 'typeorm';
 import { CreateLetterDto } from './dto/create-letter.dto';

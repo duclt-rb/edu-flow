@@ -1,11 +1,11 @@
 import {
+  createParamDecorator,
   ExecutionContext,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard, PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtUser } from './jwt.decorator';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -36,3 +36,15 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return user;
   }
 }
+
+export interface JwtUser {
+  id: string;
+  email: string;
+}
+
+export const CurrentUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.user as JwtUser;
+  },
+);

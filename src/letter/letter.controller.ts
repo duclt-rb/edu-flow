@@ -9,8 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CurrentUser, JwtUser } from 'src/auth/jwt.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt.strategy';
+import { CurrentUser, JwtAuthGuard, JwtUser } from 'src/auth/jwt.strategy';
 import { CreateLetterDto } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
