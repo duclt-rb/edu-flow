@@ -29,8 +29,8 @@ export class LetterController {
   }
 
   @Get()
-  findAll(@Query() query: GetLetterDto) {
-    return this.letterService.findAll(query);
+  findAll(@Query() query: GetLetterDto, @CurrentUser() user: JwtUser) {
+    return this.letterService.findAll(query, user);
   }
 
   @Get(':id')

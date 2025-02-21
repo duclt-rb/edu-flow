@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
 import { JwtUser } from 'src/auth/jwt.strategy';
 import { User } from 'src/user/entities/user.entity';
-import { ILike, In, Repository } from 'typeorm';
-import { CreateLetterDto } from './dto/create-letter.dto';
+import { In, Repository } from 'typeorm';
+import { CreateLetterDto, LetterForm } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { Letter } from './entities/letter.entity';
@@ -68,41 +68,102 @@ export class LetterService {
     const { relatedUserId, recipients, ...dto } = createLetterDto;
 
     const relatedUsers = await this.userRepository.find({
+      select: ['id', 'name', 'email'],
       where: { id: In(relatedUserId || []) },
     });
 
     const recipientUsers = await this.userRepository.find({
+      select: ['id', 'name', 'email'],
       where: { id: In(recipients || []) },
+    });
+
+    const sender = await this.userRepository.findOne({
+      select: ['id', 'name', 'email'],
+      where: { id: user.id },
     });
 
     const letter = this.letterRepository.create(dto);
     letter.relatedUsers = relatedUsers;
     letter.recipients = recipientUsers;
-    letter.senderId = user.id;
+    letter.sender = sender;
 
     return await this.letterRepository.save(letter);
   }
 
-  async findAll(query: GetLetterDto) {
-    const { page, limit, keyword, ...where } = query;
+  async findAll(query: GetLetterDto, user: JwtUser) {
+    const { page, limit, keyword, form, ...where } = query;
     const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
-    const [result, count] = await this.letterRepository.findAndCount({
-      relations: [
-        'sendingFaculty',
-        'receivingFaculty',
-        'directory',
-        'resolver',
-        'relatedUsers',
-        'recipients',
-      ],
-      select: selectColumn,
-      take: limit || 10,
-      skip,
-      where: {
-        ...where,
-        ...(keyword ? { title: ILike(`%${keyword}%`) } : {}),
-      },
-    });
+    const queryBuilder = this.letterRepository
+      .createQueryBuilder('letter')
+      .leftJoinAndSelect('letter.sendingFaculty', 'sendingFaculty')
+      .leftJoinAndSelect('letter.receivingFaculty', 'receivingFaculty')
+      .leftJoinAndSelect('letter.directory', 'directory')
+      .leftJoinAndSelect('letter.resolver', 'resolver')
+      .leftJoinAndSelect('letter.relatedUsers', 'relatedUsers')
+      .leftJoinAndSelect('letter.recipients', 'recipients')
+      .leftJoinAndSelect('letter.sender', 'sender')
+      .select([
+        'letter.id',
+        'letter.key',
+        'letter.title',
+        'letter.type',
+        'letter.form',
+        'letter.description',
+        'letter.status',
+        'letter.dueDate',
+        'letter.archive',
+        'letter.delete',
+        'letter.createdAt',
+        'letter.updatedAt',
+        'sendingFaculty.id',
+        'sendingFaculty.name',
+        'receivingFaculty.id',
+        'receivingFaculty.name',
+        'directory.id',
+        'directory.name',
+        'resolver.id',
+        'resolver.name',
+        'resolver.email',
+        'sender.id',
+        'sender.name',
+        'sender.email',
+        'relatedUsers.id',
+        'relatedUsers.name',
+        'relatedUsers.email',
+        'recipients.id',
+        'recipients.name',
+        'recipients.email',
+      ])
+      .take(limit || 10)
+      .skip(skip);
+
+    if (keyword) {
+      queryBuilder.where('letter.title ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+    }
+
+    if (form === LetterForm.SEND) {
+      queryBuilder.andWhere(
+        'letter.form = :form AND (resolver.id = :userId OR sender.id = :userId)',
+        {
+          form,
+          userId: user.id,
+        },
+      );
+    }
+
+    if (form === LetterForm.RECEIVE) {
+      queryBuilder.andWhere(
+        'relatedUsers.id = :userId OR recipients.id = :userId OR resolver.id = :userId OR sender.id = :userId',
+        {
+          form,
+          userId: user.id,
+        },
+      );
+    }
+
+    const [result, count] = await queryBuilder.getManyAndCount();
 
     return {
       data: result,
