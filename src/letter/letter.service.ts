@@ -155,7 +155,7 @@ export class LetterService {
 
     if (form === LetterForm.RECEIVE) {
       queryBuilder.andWhere(
-        'relatedUsers.id = :userId OR recipients.id = :userId OR resolver.id = :userId OR sender.id = :userId',
+        'relatedUsers.id = :userId OR recipients.id = :userId OR (letter.form = :form AND sender.id = :userId)',
         {
           form,
           userId: user.id,
