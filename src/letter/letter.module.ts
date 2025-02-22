@@ -4,11 +4,12 @@ import { JwtAuthGuard } from 'src/auth/jwt.strategy';
 import { UserModule } from 'src/user/user.module';
 import { Letter } from './entities/letter.entity';
 import { Signature } from './entities/signature.entity';
+import { Task } from './entities/task.entity';
 import { LetterController } from './letter.controller';
 import { LetterService } from './letter.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Letter, Signature]), UserModule],
+  imports: [TypeOrmModule.forFeature([Letter, Signature, Task]), UserModule],
   controllers: [LetterController],
   providers: [LetterService, JwtAuthGuard],
 })

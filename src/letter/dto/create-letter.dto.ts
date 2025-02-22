@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -6,6 +7,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 
 export enum LetterType {
@@ -26,6 +28,35 @@ export enum LetterStatus {
   AWAITING_APPROVAL = 'awaiting_approval',
   APPROVED = 'approved',
   REJECTED = 'rejected',
+}
+
+export enum TaskStatus {
+  TODO = 'todo',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+}
+
+export class LetterTask {
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  id: string;
+
+  @ApiProperty()
+  @IsString()
+  description: string;
+
+  @ApiProperty()
+  @IsDateString()
+  dueDate: Date;
+
+  @ApiProperty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty()
+  @IsEnum(TaskStatus)
+  status: TaskStatus;
 }
 
 export class CreateLetterDto {
@@ -95,4 +126,11 @@ export class CreateLetterDto {
   @IsEnum(LetterStatus)
   @IsOptional()
   status: string;
+
+  @ApiProperty()
+  @IsArray({})
+  @ValidateNested({ each: true })
+  @Type(() => LetterTask)
+  @IsOptional()
+  tasks: LetterTask[];
 }

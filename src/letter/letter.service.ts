@@ -3,13 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
 import { JwtUser } from 'src/auth/jwt.strategy';
 import { User } from 'src/user/entities/user.entity';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { CreateLetterDto, LetterForm } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
 import { SignLetterDto } from './dto/sign-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { Letter } from './entities/letter.entity';
 import { Signature } from './entities/signature.entity';
+import { Task } from './entities/task.entity';
 
 const selectColumn = {
   id: true,
@@ -69,6 +70,9 @@ export class LetterService {
 
     @InjectRepository(Signature)
     private readonly signatureRepository: Repository<Signature>,
+
+    @InjectRepository(Task)
+    private readonly taskRepository: Repository<Task>,
   ) {}
 
   async create(
@@ -100,10 +104,8 @@ export class LetterService {
     return await this.letterRepository.save(letter);
   }
 
-  async findAll(query: GetLetterDto, user: JwtUser) {
-    const { page, limit, keyword, form, ...where } = query;
-    const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
-    const queryBuilder = this.letterRepository
+  letterFind() {
+    return this.letterRepository
       .createQueryBuilder('letter')
       .leftJoinAndSelect('letter.sendingFaculty', 'sendingFaculty')
       .leftJoinAndSelect('letter.receivingFaculty', 'receivingFaculty')
@@ -112,8 +114,10 @@ export class LetterService {
       .leftJoinAndSelect('letter.relatedUsers', 'relatedUsers')
       .leftJoinAndSelect('letter.recipients', 'recipients')
       .leftJoinAndSelect('letter.sender', 'sender')
-      .leftJoin('letter.signatures', 'signature')
-      .leftJoin('signature.user', 'user')
+      .leftJoin('letter.tasks', 'tasks')
+      .leftJoin('letter.signatures', 'signatures')
+      .leftJoin('signatures.user', 'signatureUser')
+      .leftJoin('tasks.user', 'taskUser')
       .select([
         'letter.id',
         'letter.key',
@@ -145,11 +149,20 @@ export class LetterService {
         'recipients.id',
         'recipients.name',
         'recipients.email',
-        'signature.status',
-        'signature.description',
-        'user.id',
-        'user.name',
-      ])
+        'signatures.status',
+        'signatures.description',
+        'signatureUser.id',
+        'signatureUser.name',
+        'tasks',
+        'taskUser.id',
+        'taskUser.name',
+      ]);
+  }
+
+  async findAll(query: GetLetterDto, user: JwtUser) {
+    const { page, limit, keyword, form, ...where } = query;
+    const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
+    const queryBuilder = this.letterFind()
       .take(limit || 10)
       .skip(skip);
 
@@ -190,31 +203,39 @@ export class LetterService {
   }
 
   async findOne(id: string): Promise<Letter> {
-    return await this.letterRepository.findOne({
-      where: { id },
-      relations: [
-        'sendingFaculty',
-        'receivingFaculty',
-        'directory',
-        'resolver',
-        'relatedUsers',
-        'recipients',
-        'sender',
-      ],
-      select: selectColumn,
-    });
+    const query = this.letterFind().where('letter.id = :id', { id });
+    const result = await query.getOne();
+
+    return result;
   }
 
   async update(id: string, updateLetterDto: UpdateLetterDto): Promise<Letter> {
-    const { relatedUserId, recipients, ...dto } = updateLetterDto;
+    const { relatedUserId, recipients, tasks, ...dto } = updateLetterDto;
 
     if (!isEmpty(dto)) {
       await this.letterRepository.update(id, dto);
     }
 
+    if (!isEmpty(tasks)) {
+      const taskIds = tasks.map((e) => e.id).filter((e) => e);
+
+      await this.taskRepository.delete({
+        letter: { id },
+        id: Not(In(taskIds)),
+      });
+
+      const newTasks = tasks.map((task) => ({
+        ...task,
+        letter: { id },
+        user: { id: task.userId },
+      }));
+
+      await this.taskRepository.upsert(newTasks, ['id']);
+    }
+
     const letter = await this.letterRepository.findOneOrFail({
       where: { id },
-      relations: ['relatedUsers', 'recipients'],
+      relations: ['relatedUsers', 'recipients', 'tasks'],
     });
 
     const relatedUsers = await this.userRepository.find({

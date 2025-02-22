@@ -1,6 +1,7 @@
 import { Faculty } from 'src/faculty/entities/faculty.entity';
 import { Letter } from 'src/letter/entities/letter.entity';
 import { Signature } from 'src/letter/entities/signature.entity';
+import { Task } from 'src/letter/entities/task.entity';
 import {
   Column,
   Entity,
@@ -75,4 +76,7 @@ export class User {
 
   @OneToMany(() => Signature, (signature) => signature.user)
   signatures: Signature[];
+
+  @OneToMany(() => Task, (task) => task.user)
+  tasks: Task[];
 }

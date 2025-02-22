@@ -12,6 +12,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Signature } from './signature.entity';
+import { Task } from './task.entity';
 
 @Entity()
 export class Letter {
@@ -125,4 +126,7 @@ export class Letter {
 
   @OneToMany(() => Signature, (signature) => signature.letter)
   signatures: Signature[];
+
+  @OneToMany(() => Task, (task) => task.letter)
+  tasks: Task[];
 }
