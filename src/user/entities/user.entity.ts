@@ -1,6 +1,14 @@
 import { Faculty } from 'src/faculty/entities/faculty.entity';
 import { Letter } from 'src/letter/entities/letter.entity';
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne } from 'typeorm';
+import { Signature } from 'src/letter/entities/signature.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
@@ -64,4 +72,7 @@ export class User {
 
   @ManyToMany(() => Letter, (letter) => letter.recipients)
   recipientUsers: Letter[];
+
+  @OneToMany(() => Signature, (signature) => signature.user)
+  signatures: Signature[];
 }

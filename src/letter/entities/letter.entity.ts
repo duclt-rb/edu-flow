@@ -8,8 +8,10 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Signature } from './signature.entity';
 
 @Entity()
 export class Letter {
@@ -120,4 +122,7 @@ export class Letter {
   @ManyToOne(() => Faculty, (faculty) => faculty.id)
   @JoinColumn({ name: 'receiving_faculty_id' })
   receivingFaculty: Faculty;
+
+  @OneToMany(() => Signature, (signature) => signature.letter)
+  signatures: Signature[];
 }

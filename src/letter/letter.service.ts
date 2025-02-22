@@ -6,8 +6,10 @@ import { User } from 'src/user/entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { CreateLetterDto, LetterForm } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
+import { SignLetterDto } from './dto/sign-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { Letter } from './entities/letter.entity';
+import { Signature } from './entities/signature.entity';
 
 const selectColumn = {
   id: true,
@@ -45,6 +47,11 @@ const selectColumn = {
     name: true,
     email: true,
   },
+  sender: {
+    id: true,
+    name: true,
+    email: true,
+  },
   archive: true,
   delete: true,
   createdAt: true,
@@ -59,6 +66,9 @@ export class LetterService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Signature)
+    private readonly signatureRepository: Repository<Signature>,
   ) {}
 
   async create(
@@ -102,6 +112,8 @@ export class LetterService {
       .leftJoinAndSelect('letter.relatedUsers', 'relatedUsers')
       .leftJoinAndSelect('letter.recipients', 'recipients')
       .leftJoinAndSelect('letter.sender', 'sender')
+      .leftJoin('letter.signatures', 'signature')
+      .leftJoin('signature.user', 'user')
       .select([
         'letter.id',
         'letter.key',
@@ -133,6 +145,10 @@ export class LetterService {
         'recipients.id',
         'recipients.name',
         'recipients.email',
+        'signature.status',
+        'signature.description',
+        'user.id',
+        'user.name',
       ])
       .take(limit || 10)
       .skip(skip);
@@ -183,6 +199,7 @@ export class LetterService {
         'resolver',
         'relatedUsers',
         'recipients',
+        'sender',
       ],
       select: selectColumn,
     });
@@ -220,5 +237,43 @@ export class LetterService {
     const result = await this.letterRepository.delete(id);
 
     return { success: result.affected > 0 };
+  }
+
+  async sign(id: string, dto: SignLetterDto, user: JwtUser) {
+    const letter = await this.letterRepository.findOneOrFail({
+      where: { id },
+      relations: ['recipients'],
+    });
+
+    const recipient = letter.recipients.find(
+      (recipient) => recipient.id === user.id,
+    );
+
+    if (!recipient) {
+      throw new Error('Recipient not found');
+    }
+
+    const existedSign = await this.signatureRepository.findOne({
+      relations: ['letter', 'user'],
+      where: {
+        letter: { id },
+        user: { id: user.id },
+      },
+    });
+
+    if (existedSign) {
+      existedSign.status = dto.status;
+      existedSign.description = dto.description || existedSign.description;
+      return await this.signatureRepository.save(existedSign);
+    } else {
+      const sign = this.signatureRepository.create({
+        letter,
+        user,
+        status: dto.status,
+        description: dto.description,
+      });
+
+      return await this.signatureRepository.save(sign);
+    }
   }
 }

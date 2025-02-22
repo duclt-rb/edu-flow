@@ -12,6 +12,7 @@ import {
 import { CurrentUser, JwtAuthGuard, JwtUser } from 'src/auth/jwt.strategy';
 import { CreateLetterDto } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
+import { SignLetterDto } from './dto/sign-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
 import { LetterService } from './letter.service';
 
@@ -41,6 +42,15 @@ export class LetterController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateLetterDto: UpdateLetterDto) {
     return this.letterService.update(id, updateLetterDto);
+  }
+
+  @Post('sign/:id')
+  sign(
+    @Param('id') id: string,
+    @Body() signLetterDto: SignLetterDto,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.letterService.sign(id, signLetterDto, user);
   }
 
   @Delete(':id')
