@@ -335,7 +335,7 @@ export class LetterService {
 
     if (isTrue) {
       await this.auditService.create({
-        action: AuditAction.UPDATE,
+        action: AuditAction.DELETE,
         entityId: id,
         userId: user.id,
         entityType: EntityType.LETTER,
