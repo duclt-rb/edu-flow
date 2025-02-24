@@ -14,11 +14,13 @@ export class FacultyService {
 
   async create(createFacultyDto: CreateFacultyDto) {
     const existingFaculty = await this.facultyRepository.findOne({
-      where: { name: createFacultyDto.name },
+      where: { abbreviation: createFacultyDto.abbreviation },
     });
 
     if (existingFaculty) {
-      throw new BadRequestException('Faculty with this name already exists');
+      throw new BadRequestException(
+        'Faculty with this abbreviation already exists',
+      );
     }
 
     return this.facultyRepository.save(createFacultyDto);

@@ -1,3 +1,4 @@
+import { AuditLog } from 'src/audit-log/entities/audit-log.entity';
 import { Faculty } from 'src/faculty/entities/faculty.entity';
 import { Letter } from 'src/letter/entities/letter.entity';
 import { Signature } from 'src/letter/entities/signature.entity';
@@ -10,6 +11,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
+import { Notification } from '../../notification/entities/notification.entity';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
@@ -79,4 +81,10 @@ export class User {
 
   @OneToMany(() => Task, (task) => task.user)
   tasks: Task[];
+
+  @OneToMany(() => Task, (auditLog) => auditLog.user)
+  auditLogs: AuditLog[];
+
+  @OneToMany(() => Task, (notification) => notification.user)
+  notifications: Notification[];
 }

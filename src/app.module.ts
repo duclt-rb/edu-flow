@@ -11,6 +11,8 @@ import { FacultyModule } from './faculty/faculty.module';
 import { LetterModule } from './letter/letter.module';
 import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
+import { NotificationModule } from './notification/notification.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { UserModule } from './user/user.module';
     FacultyModule,
     DirectoryModule,
     LetterModule,
+    NotificationModule,
+    AuditLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
