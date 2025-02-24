@@ -1,5 +1,6 @@
 import { AuditLog } from 'src/audit-log/entities/audit-log.entity';
 import { Faculty } from 'src/faculty/entities/faculty.entity';
+import { LetterRecipient } from 'src/letter/entities/letter-recipient.entity';
 import { Letter } from 'src/letter/entities/letter.entity';
 import { Signature } from 'src/letter/entities/signature.entity';
 import { Task } from 'src/letter/entities/task.entity';
@@ -87,4 +88,7 @@ export class User {
 
   @OneToMany(() => Task, (notification) => notification.user)
   notifications: Notification[];
+
+  @OneToMany(() => LetterRecipient, (letterRecipient) => letterRecipient.user)
+  recipients: LetterRecipient[];
 }

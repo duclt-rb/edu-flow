@@ -8,6 +8,7 @@ import { CreateLetterDto, LetterForm } from './dto/create-letter.dto';
 import { GetLetterDto } from './dto/get-letter.dto';
 import { SignLetterDto } from './dto/sign-letter.dto';
 import { UpdateLetterDto } from './dto/update-letter.dto';
+import { LetterRecipient } from './entities/letter-recipient.entity';
 import { Letter } from './entities/letter.entity';
 import { Signature } from './entities/signature.entity';
 import { Task } from './entities/task.entity';
@@ -73,6 +74,9 @@ export class LetterService {
 
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
+
+    @InjectRepository(LetterRecipient)
+    private readonly recipientRepository: Repository<LetterRecipient>,
   ) {}
 
   async create(
@@ -86,9 +90,9 @@ export class LetterService {
       where: { id: In(relatedUserId || []) },
     });
 
-    const recipientUsers = await this.userRepository.find({
+    const users = await this.userRepository.find({
       select: ['id', 'name', 'email'],
-      where: { id: In(recipients || []) },
+      where: { id: In(recipients?.map((e) => e.userId) || []) },
     });
 
     const sender = await this.userRepository.findOne({
@@ -98,10 +102,20 @@ export class LetterService {
 
     const letter = this.letterRepository.create(dto);
     letter.relatedUsers = relatedUsers;
-    letter.recipients = recipientUsers;
     letter.sender = sender;
 
-    return await this.letterRepository.save(letter);
+    const result = await this.letterRepository.save(letter);
+
+    const recipientMap = users.map((recipient) => ({
+      letter: { id: result.id },
+      user: recipient,
+      description: recipients.find((e) => e.userId === recipient.id)
+        ?.description,
+    }));
+
+    await this.recipientRepository.insert(recipientMap);
+
+    return this.findOne(result.id);
   }
 
   letterFind() {
@@ -113,6 +127,7 @@ export class LetterService {
       .leftJoinAndSelect('letter.resolver', 'resolver')
       .leftJoinAndSelect('letter.relatedUsers', 'relatedUsers')
       .leftJoinAndSelect('letter.recipients', 'recipients')
+      .leftJoinAndSelect('recipients.user', 'recipientUser')
       .leftJoinAndSelect('letter.sender', 'sender')
       .leftJoin('letter.tasks', 'tasks')
       .leftJoin('letter.signatures', 'signatures')
@@ -146,9 +161,10 @@ export class LetterService {
         'relatedUsers.id',
         'relatedUsers.name',
         'relatedUsers.email',
-        'recipients.id',
-        'recipients.name',
-        'recipients.email',
+        'recipients',
+        'recipientUser.id',
+        'recipientUser.name',
+        'recipientUser.email',
         'signatures.status',
         'signatures.description',
         'signatureUser.id',
@@ -209,7 +225,7 @@ export class LetterService {
     return result;
   }
 
-  async update(id: string, updateLetterDto: UpdateLetterDto): Promise<Letter> {
+  async update(id: string, updateLetterDto: UpdateLetterDto) {
     const { relatedUserId, recipients, tasks, ...dto } = updateLetterDto;
 
     if (!isEmpty(dto)) {
@@ -238,18 +254,34 @@ export class LetterService {
       relations: ['relatedUsers', 'recipients', 'tasks'],
     });
 
-    const relatedUsers = await this.userRepository.find({
-      where: { id: In(relatedUserId || []) },
-    });
-
-    const recipientUsers = await this.userRepository.find({
-      where: { id: In(recipients || []) },
-    });
-
-    letter.relatedUsers = relatedUsers;
-    letter.recipients = recipientUsers;
+    if (!isEmpty(relatedUserId)) {
+      letter.relatedUsers = await this.userRepository.find({
+        where: { id: In(relatedUserId || []) },
+      });
+    }
 
     await this.letterRepository.save(letter);
+
+    if (!isEmpty(recipients)) {
+      const userIds = recipients.map((e) => e.userId);
+
+      const affected = await this.recipientRepository.delete({
+        letter: { id },
+      });
+
+      const recipientUsers = await this.userRepository.find({
+        where: { id: In(userIds || []) },
+      });
+
+      const recipientMap = recipientUsers.map((recipient) => ({
+        letter: { id },
+        user: recipient,
+        description: recipients.find((e) => e.userId === recipient.id)
+          ?.description,
+      }));
+
+      await this.recipientRepository.save(recipientMap);
+    }
 
     return this.findOne(id);
   }

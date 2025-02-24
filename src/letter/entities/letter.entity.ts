@@ -11,6 +11,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { LetterRecipient } from './letter-recipient.entity';
 import { Signature } from './signature.entity';
 import { Task } from './task.entity';
 
@@ -92,13 +93,8 @@ export class Letter {
   @JoinColumn({ name: 'directory_id' })
   directory: Directory;
 
-  @ManyToMany(() => User, (user) => user.recipientUsers)
-  @JoinTable({
-    name: 'letter_recipient_user',
-    joinColumn: { name: 'letter_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
-  })
-  recipients: User[];
+  @OneToMany(() => LetterRecipient, (recipient) => recipient.letter)
+  recipients: LetterRecipient[];
 
   @ManyToMany(() => User, (user) => user.relatedUsers)
   @JoinTable({

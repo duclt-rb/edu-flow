@@ -36,6 +36,14 @@ export enum TaskStatus {
   COMPLETED = 'completed',
 }
 
+export class Recipients {
+  @IsString()
+  userId: string;
+
+  @IsString()
+  description: string;
+}
+
 export class LetterTask {
   @ApiProperty()
   @IsString()
@@ -120,7 +128,9 @@ export class CreateLetterDto {
   @ApiProperty()
   @IsArray()
   @IsOptional()
-  recipients: string[];
+  @ValidateNested({ each: true })
+  @Type(() => Recipients)
+  recipients: Recipients[];
 
   @ApiProperty()
   @IsEnum(LetterStatus)
