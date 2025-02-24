@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
 import { JwtUser } from 'src/auth/jwt.strategy';
+import { Directory } from 'src/directory/entities/directory.entity';
+import { Faculty } from 'src/faculty/entities/faculty.entity';
 import { User } from 'src/user/entities/user.entity';
 import { In, Not, Repository } from 'typeorm';
 import { CreateLetterDto, LetterForm } from './dto/create-letter.dto';
@@ -77,6 +79,12 @@ export class LetterService {
 
     @InjectRepository(LetterRecipient)
     private readonly recipientRepository: Repository<LetterRecipient>,
+
+    @InjectRepository(Directory)
+    private readonly directoryRepository: Repository<Directory>,
+
+    @InjectRepository(Faculty)
+    private readonly facultyRepository: Repository<Faculty>,
   ) {}
 
   async create(
@@ -105,6 +113,19 @@ export class LetterService {
     letter.sender = sender;
 
     const result = await this.letterRepository.save(letter);
+
+    if (!dto.key) {
+      const directory = await this.directoryRepository.findOneOrFail({
+        where: { id: dto.directoryId },
+      });
+
+      const faculty = await this.facultyRepository.findOneOrFail({
+        where: { id: dto.receivingFacultyId },
+      });
+
+      result.key = `${result.id}/${new Date().getFullYear()}/${directory.abbreviation}-${faculty.abbreviation}`;
+      await this.letterRepository.save(result);
+    }
 
     const recipientMap = users.map((recipient) => ({
       letter: { id: result.id },

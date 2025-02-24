@@ -8,5 +8,6 @@ import { Directory } from './entities/directory.entity';
   imports: [TypeOrmModule.forFeature([Directory])],
   controllers: [DirectoryController],
   providers: [DirectoryService],
+  exports: [TypeOrmModule],
 })
 export class DirectoryModule {}
