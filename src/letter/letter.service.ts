@@ -120,7 +120,7 @@ export class LetterService {
       });
 
       const faculty = await this.facultyRepository.findOneOrFail({
-        where: { id: dto.receivingFacultyId },
+        where: { id: dto.sendingFacultyId },
       });
 
       result.key = `${result.id}/${new Date().getFullYear()}/${directory.abbreviation}-${faculty.abbreviation}`;
