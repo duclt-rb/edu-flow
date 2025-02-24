@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuditLogModule } from 'src/audit-log/audit-log.module';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
 import { DirectoryModule } from 'src/directory/directory.module';
 import { FacultyModule } from 'src/faculty/faculty.module';
@@ -17,6 +18,7 @@ import { LetterService } from './letter.service';
     UserModule,
     DirectoryModule,
     FacultyModule,
+    AuditLogModule,
   ],
   controllers: [LetterController],
   providers: [LetterService, JwtAuthGuard],

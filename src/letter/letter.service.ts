@@ -1,6 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty } from 'lodash';
+import { AuditLogService } from 'src/audit-log/audit-log.service';
+import {
+  AuditAction,
+  EntityType,
+} from 'src/audit-log/entities/audit-log.entity';
 import { JwtUser } from 'src/auth/jwt.strategy';
 import { Directory } from 'src/directory/entities/directory.entity';
 import { Faculty } from 'src/faculty/entities/faculty.entity';
@@ -85,6 +90,8 @@ export class LetterService {
 
     @InjectRepository(Faculty)
     private readonly facultyRepository: Repository<Faculty>,
+
+    private readonly auditService: AuditLogService,
   ) {}
 
   async create(
@@ -135,6 +142,13 @@ export class LetterService {
     }));
 
     await this.recipientRepository.insert(recipientMap);
+
+    await this.auditService.create({
+      action: AuditAction.CREATE,
+      entityId: result.id,
+      userId: user.id,
+      entityType: EntityType.LETTER,
+    });
 
     return this.findOne(result.id);
   }
@@ -221,7 +235,7 @@ export class LetterService {
 
     if (form === LetterForm.RECEIVE) {
       queryBuilder.andWhere(
-        'relatedUsers.id = :userId OR recipients.id = :userId OR (letter.form = :form AND sender.id = :userId)',
+        'relatedUsers.id = :userId OR recipientUser.id = :userId OR (letter.form = :form AND sender.id = :userId)',
         {
           form,
           userId: user.id,
@@ -246,7 +260,7 @@ export class LetterService {
     return result;
   }
 
-  async update(id: string, updateLetterDto: UpdateLetterDto) {
+  async update(id: string, updateLetterDto: UpdateLetterDto, user: JwtUser) {
     const { relatedUserId, recipients, tasks, ...dto } = updateLetterDto;
 
     if (!isEmpty(dto)) {
@@ -304,13 +318,31 @@ export class LetterService {
       await this.recipientRepository.save(recipientMap);
     }
 
+    await this.auditService.create({
+      action: AuditAction.UPDATE,
+      entityId: id,
+      userId: user.id,
+      entityType: EntityType.LETTER,
+    });
+
     return this.findOne(id);
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: JwtUser) {
     const result = await this.letterRepository.delete(id);
 
-    return { success: result.affected > 0 };
+    const isTrue = result.affected > 0;
+
+    if (isTrue) {
+      await this.auditService.create({
+        action: AuditAction.UPDATE,
+        entityId: id,
+        userId: user.id,
+        entityType: EntityType.LETTER,
+      });
+    }
+
+    return { success: isTrue };
   }
 
   async sign(id: string, dto: SignLetterDto, user: JwtUser) {
@@ -324,7 +356,7 @@ export class LetterService {
     );
 
     if (!recipient) {
-      throw new Error('Recipient not found');
+      throw new BadRequestException('Recipient not found');
     }
 
     const existedSign = await this.signatureRepository.findOne({
@@ -335,10 +367,11 @@ export class LetterService {
       },
     });
 
+    let result;
     if (existedSign) {
       existedSign.status = dto.status;
       existedSign.description = dto.description || existedSign.description;
-      return await this.signatureRepository.save(existedSign);
+      result = await this.signatureRepository.save(existedSign);
     } else {
       const sign = this.signatureRepository.create({
         letter,
@@ -347,7 +380,16 @@ export class LetterService {
         description: dto.description,
       });
 
-      return await this.signatureRepository.save(sign);
+      result = await this.signatureRepository.save(sign);
     }
+
+    await this.auditService.create({
+      action: AuditAction.SIGN,
+      entityId: id,
+      userId: user.id,
+      entityType: EntityType.LETTER,
+    });
+
+    return result;
   }
 }

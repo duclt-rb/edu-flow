@@ -1,7 +1,8 @@
+import { AuditAction, EntityType } from '../entities/audit-log.entity';
+
 export class CreateAuditLogDto {
-  user: string;
-  action: string;
-  target_id: string;
-  target_type: string;
-  created_at: Date;
+  userId: string;
+  action: AuditAction;
+  entityId: string;
+  entityType: EntityType;
 }

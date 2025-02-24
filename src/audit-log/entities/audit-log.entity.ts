@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,14 +16,16 @@ export enum AuditAction {
   CREATE = 'CREATE',
   UPDATE = 'UPDATE',
   DELETE = 'DELETE',
+  SIGN = 'SIGN',
 }
 
-@Entity('audit_logs')
+@Entity('audit_log')
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.auditLogs, { eager: true })
+  @ManyToOne(() => User, (user) => user.auditLogs)
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @Column()
@@ -34,6 +37,6 @@ export class AuditLog {
   @Column({ name: 'entity_type', type: 'enum', enum: EntityType })
   entityType: EntityType;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }

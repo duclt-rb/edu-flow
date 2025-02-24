@@ -40,8 +40,12 @@ export class LetterController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLetterDto: UpdateLetterDto) {
-    return this.letterService.update(id, updateLetterDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateLetterDto: UpdateLetterDto,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.letterService.update(id, updateLetterDto, user);
   }
 
   @Post('sign/:id')
@@ -54,7 +58,7 @@ export class LetterController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.letterService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+    return this.letterService.remove(id, user);
   }
 }

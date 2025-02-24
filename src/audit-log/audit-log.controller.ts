@@ -18,7 +18,7 @@ export class AuditLogController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.auditLogService.findOne(+id);
+    return this.auditLogService.findOne(id);
   }
 
   @Delete(':id')
