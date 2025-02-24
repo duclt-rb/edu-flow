@@ -55,6 +55,11 @@ export class LetterTask {
   description: string;
 
   @ApiProperty()
+  @IsString()
+  @IsOptional()
+  feedback: string;
+
+  @ApiProperty()
   @IsDateString()
   dueDate: Date;
 

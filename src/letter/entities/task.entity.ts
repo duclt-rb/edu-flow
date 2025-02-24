@@ -19,6 +19,9 @@ export class Task {
   description: string;
 
   @Column()
+  feedback: string;
+
+  @Column()
   status: string;
 
   @Column({ name: 'due_date' })
