@@ -44,6 +44,7 @@ export class AuditLogService {
       ])
       .take(limit)
       .skip(skip)
+      .orderBy('auditLog.createdAt', 'DESC')
       .getManyAndCount();
 
     return {

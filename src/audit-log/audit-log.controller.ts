@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { AuditLogService } from './audit-log.service';
 import { CreateAuditLogDto } from './dto/create-audit-log.dto';
 
@@ -12,8 +20,8 @@ export class AuditLogController {
   }
 
   @Get()
-  findAll() {
-    return this.auditLogService.findAll();
+  findAll(@Query('limit') limit: number, @Query('page') page: number) {
+    return this.auditLogService.findAll(limit, page);
   }
 
   @Get(':id')
