@@ -352,7 +352,7 @@ export class LetterService {
     });
 
     const recipient = letter.recipients.find(
-      (recipient) => recipient.id === user.id,
+      (recipient) => recipient.user.id === user.id,
     );
 
     if (!recipient) {
