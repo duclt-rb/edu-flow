@@ -148,4 +148,9 @@ export class CreateLetterDto {
   @Type(() => LetterTask)
   @IsOptional()
   tasks: LetterTask[];
+
+  @ApiProperty()
+  @IsArray()
+  @IsOptional()
+  signatures: any[];
 }

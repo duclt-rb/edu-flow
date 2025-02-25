@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any): Promise<JwtUser> {
-    return { id: payload.sub, email: payload.email };
+    return { id: payload.sub, email: payload.email, name: payload.name };
   }
 }
 
@@ -40,6 +40,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 export interface JwtUser {
   id: string;
   email: string;
+  name?: string;
 }
 
 export const CurrentUser = createParamDecorator(

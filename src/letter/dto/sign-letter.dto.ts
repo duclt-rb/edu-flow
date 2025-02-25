@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum SignStatus {
   Reject = 'reject',
@@ -15,4 +15,9 @@ export class SignLetterDto {
   @IsString()
   @IsOptional()
   description: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  clear: boolean;
 }

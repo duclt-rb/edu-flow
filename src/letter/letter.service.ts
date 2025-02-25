@@ -1,9 +1,12 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { isEmpty } from 'lodash';
+import { isEmpty, uniqBy } from 'lodash';
+import * as moment from 'moment';
 import { AuditLogService } from 'src/audit-log/audit-log.service';
 import {
   AuditAction,
+  AuditLog,
   EntityType,
 } from 'src/audit-log/entities/audit-log.entity';
 import { JwtUser } from 'src/auth/jwt.strategy';
@@ -92,6 +95,7 @@ export class LetterService {
     private readonly facultyRepository: Repository<Faculty>,
 
     private readonly auditService: AuditLogService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async create(
@@ -143,14 +147,81 @@ export class LetterService {
 
     await this.recipientRepository.insert(recipientMap);
 
-    await this.auditService.create({
+    const log = await this.auditService.create({
       action: AuditAction.CREATE,
       entityId: result.id,
       userId: user.id,
       entityType: EntityType.LETTER,
     });
 
+    const email = [
+      ...recipientMap.map((e) => ({
+        name: e.user.name,
+        email: e.user.email.replace(/\+[\d]+(?=@)/, ''),
+      })),
+      ...relatedUsers.map((e) => ({
+        name: e.name,
+        email: e.email.replace(/\+[\d]+(?=@)/, ''),
+      })),
+    ];
+
+    this.sendNotification(email, log, user, letter);
+
     return this.findOne(result.id);
+  }
+
+  sendNotification(
+    email: {
+      name: string;
+      email: string;
+    }[],
+    log: AuditLog,
+    user: JwtUser,
+    letter: Letter,
+  ) {
+    try {
+      const _email = uniqBy(email, 'email.email');
+
+      _email.forEach(async (e) => {
+        await this.mailerService.sendMail({
+          to: e.email,
+          from: '"Letter Management" <xuannganle6868@gmail.com>',
+          subject: 'TDT-Letter Thông Báo Cập Nhật',
+          html: `
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+            <div style="background-color: #3498db; padding: 20px; text-align: center; color: #ffffff;">
+                <h1>TDT-Letter Thông Báo Cập Nhật</h1>
+            </div>
+  
+            <div style="padding: 20px;">
+                <h2>Hello ${e.email},</h2>
+                <div style="background-color: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0;">
+                    <h3>Chi tiết công văn</h3>
+                    <p><strong>Công văn ID: ${letter.id}</strong></p>
+                    <p><strong>Tên công văn: ${letter.title}</strong></p>
+                </div>
+  
+                <div style="background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>Chi tiết cập nhật</h3>
+                    <p><strong>Loại cập nhật: ${log.action}</strong></p>
+  
+                    <div style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                        <p>Cập nhật bởi: ${user.name}</p>
+                        <p>Cập nhật vào: ${moment(log.createdAt).format('DD/MM/YYYY HH:mm:ss')}</p>
+                    </div>
+                </div>
+  
+                <p style="text-align: center;"></p>
+                    <a href="https://official-letter-management.vercel.app/" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: #ffffff; text-decoration: none; border-radius: 5px;">Xem chi tiết thông báo</a>
+                </p>
+                </div>
+            </div>
+            `,
+        });
+      });
+    } catch {
+      throw new BadRequestException('Failed to send email');
+    }
   }
 
   letterFind() {
@@ -261,7 +332,8 @@ export class LetterService {
   }
 
   async update(id: string, updateLetterDto: UpdateLetterDto, user: JwtUser) {
-    const { relatedUserId, recipients, tasks, ...dto } = updateLetterDto;
+    const { relatedUserId, recipients, tasks, signatures, ...dto } =
+      updateLetterDto;
 
     if (!isEmpty(dto)) {
       await this.letterRepository.update(id, dto);
@@ -289,10 +361,15 @@ export class LetterService {
       relations: ['relatedUsers', 'recipients', 'tasks'],
     });
 
+    let relatedUsers = [],
+      recipientUsers = [];
+
     if (!isEmpty(relatedUserId)) {
-      letter.relatedUsers = await this.userRepository.find({
+      relatedUsers = await this.userRepository.find({
         where: { id: In(relatedUserId || []) },
       });
+
+      letter.relatedUsers = relatedUsers;
     }
 
     await this.letterRepository.save(letter);
@@ -304,7 +381,7 @@ export class LetterService {
         letter: { id },
       });
 
-      const recipientUsers = await this.userRepository.find({
+      recipientUsers = await this.userRepository.find({
         where: { id: In(userIds || []) },
       });
 
@@ -318,12 +395,25 @@ export class LetterService {
       await this.recipientRepository.save(recipientMap);
     }
 
-    await this.auditService.create({
+    const log = await this.auditService.create({
       action: AuditAction.UPDATE,
       entityId: id,
       userId: user.id,
       entityType: EntityType.LETTER,
     });
+
+    const email = [
+      ...letter.relatedUsers.map((e) => ({
+        name: e.name,
+        email: e.email.replace(/\+[\d]+(?=@)/, ''),
+      })),
+      ...letter.recipients.map((e) => ({
+        name: e.user.name,
+        email: e.user.email.replace(/\+[\d]+(?=@)/, ''),
+      })),
+    ];
+
+    this.sendNotification(email, log, user, letter);
 
     return this.findOne(id);
   }
@@ -346,9 +436,17 @@ export class LetterService {
   }
 
   async sign(id: string, dto: SignLetterDto, user: JwtUser) {
+    if (dto.clear) {
+      await this.signatureRepository.delete({
+        letter: { id },
+      });
+
+      return { success: true };
+    }
+
     const letter = await this.letterRepository.findOneOrFail({
       where: { id },
-      relations: ['recipients'],
+      relations: ['recipients', 'relatedUsers'],
     });
 
     const recipient = letter.recipients.find(
@@ -383,12 +481,25 @@ export class LetterService {
       result = await this.signatureRepository.save(sign);
     }
 
-    await this.auditService.create({
+    const log = await this.auditService.create({
       action: AuditAction.SIGN,
       entityId: id,
       userId: user.id,
       entityType: EntityType.LETTER,
     });
+
+    const email = [
+      ...letter.recipients.map((e) => ({
+        name: e.user.name,
+        email: e.user.email.replace(/\+[\d]+(?=@)/, ''),
+      })),
+      ...letter.relatedUsers.map((e) => ({
+        name: e.name,
+        email: e.email.replace(/\+[\d]+(?=@)/, ''),
+      })),
+    ];
+
+    this.sendNotification(email, log, user, letter);
 
     return result;
   }
