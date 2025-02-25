@@ -2,7 +2,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty, uniqBy } from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import { AuditLogService } from 'src/audit-log/audit-log.service';
 import {
   AuditAction,
