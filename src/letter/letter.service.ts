@@ -286,7 +286,6 @@ export class LetterService {
     const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
     const queryBuilder = this.letterFind()
       .take(limit || 10)
-      .orderBy('letter.createdAt', 'DESC')
       .skip(skip);
 
     if (keyword) {
@@ -326,7 +325,9 @@ export class LetterService {
   }
 
   async findOne(id: string): Promise<Letter> {
-    const query = this.letterFind().where('letter.id = :id', { id });
+    const query = this.letterFind()
+      .where('letter.id = :id', { id })
+      .orderBy('recipients.id', 'ASC');
     const result = await query.getOne();
 
     return result;
