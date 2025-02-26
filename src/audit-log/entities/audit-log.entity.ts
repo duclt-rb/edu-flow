@@ -1,3 +1,4 @@
+import { Notification } from 'src/notification/entities/notification.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -39,4 +41,7 @@ export class AuditLog {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @OneToMany(() => Notification, (notification) => notification.auditLog)
+  notifications: Notification[];
 }

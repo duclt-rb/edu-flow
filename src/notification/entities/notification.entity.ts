@@ -1,29 +1,29 @@
-import { Letter } from 'src/letter/entities/letter.entity';
+import { AuditLog } from 'src/audit-log/entities/audit-log.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-export enum NotificationType {
-  NEW_LETTER = 'NEW_LETTER',
-  UPDATED_LETTER = 'UPDATED_LETTER',
-}
-
+@Entity('notification')
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.notifications, { eager: true })
+  @OneToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Letter, { nullable: true, eager: true })
-  letter: Letter | null;
-
-  @Column({ type: 'enum', enum: NotificationType })
-  type: NotificationType;
+  @ManyToOne(() => AuditLog, (auditLog) => auditLog.notifications, {
+    eager: true,
+  })
+  @JoinColumn({ name: 'audit_log_id' })
+  auditLog: AuditLog;
 
   @Column({ default: false, name: 'is_read' })
   isRead: boolean;
