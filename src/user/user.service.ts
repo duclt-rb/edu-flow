@@ -42,16 +42,34 @@ export class UserService {
         from: '"Letter Management" <xuannganle6868@gmail.com>',
         subject: 'Welcome to our platform',
         html: `
-        <p>Chào ${createUserDto.name},</p>
+        <div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+            <div class="header" style="background-color: #3498db; padding: 20px; text-align: center; color: #ffffff;">
+                <h1>TDT-Letter Management</h1>
+            </div>
 
-        <p>Bạn đã được mời tham gia hệ thống <strong>Letter Management</strong> của chúng tôi. Đây là hệ thống giúp bạn quản lý công văn một cách hiệu quả và tiện lợi.</p>
-
-        <p>Vui lòng nhấn vào đường link bên dưới để truy cập hệ thống và đăng nhập bằng tài khoản của bạn:</p>
-
-        <p>Mật khẩu: <b> ${createUserDto.password || password} </b> </p>
-
-        <p>🔗 <a href="https://official-letter-management.vercel.app/dang-nhap" target="_blank">Click vào đây để đăng nhập</a></p>
-        `,
+            <div class="content" style="padding: 20px;">
+                <h2>Hello ${createUserDto.name},</h2>
+                <p>
+                    Bạn đã được mời tham gia hệ thống Letter Management của chúng tôi. Đây là
+                    hệ thống giúp bạn quản lý công văn một cách hiệu quả và tiện lợi.
+                </p>
+                <p>
+                    Vui lòng nhấn vào đường link bên dưới để truy cập hệ thống và đăng nhập
+                    bằng tài khoản của bạn:
+                </p>
+                <p>Mật khẩu: ${createUserDto.password || password}</p>
+                <p style="text-align: center;">
+                    <a
+                        target="_blank"
+                        href="https://official-letter-management.vercel.app/dang-nhap"
+                        class="button"
+                        style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: #ffffff; text-decoration: none; border-radius: 5px;"
+                        >Chọn vào đây để đăng nhập</a
+                    >
+                </p>
+            </div>
+        </div>
+      `,
       });
     } catch {
       throw new BadRequestException('Failed to send email');
