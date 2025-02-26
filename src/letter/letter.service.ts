@@ -286,6 +286,7 @@ export class LetterService {
     const skip = Math.max(((page || 1) - 1) * (limit || 10), 0);
     const queryBuilder = this.letterFind()
       .take(limit || 10)
+      .orderBy('letter.createdAt', 'DESC')
       .skip(skip);
 
     if (keyword) {
