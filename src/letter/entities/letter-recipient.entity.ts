@@ -23,4 +23,7 @@ export class LetterRecipient {
 
   @Column()
   description: string;
+
+  @Column()
+  order: number;
 }

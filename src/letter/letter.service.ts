@@ -138,11 +138,12 @@ export class LetterService {
       await this.letterRepository.save(result);
     }
 
-    const recipientMap = users.map((recipient) => ({
+    const recipientMap = users.map((recipient, order) => ({
       letter: { id: result.id },
       user: recipient,
       description: recipients.find((e) => e.userId === recipient.id)
         ?.description,
+      order,
     }));
 
     await this.recipientRepository.insert(recipientMap);
@@ -180,7 +181,11 @@ export class LetterService {
     letter: Letter,
   ) {
     try {
-      const _email = uniqBy(email, 'email.email');
+      const _email = uniqBy(email, 'email');
+
+      const logTime = moment(log.createdAt)
+        .utcOffset(7)
+        .format('DD/MM/YYYY HH:mm:ss');
 
       _email.forEach(async (e) => {
         await this.mailerService.sendMail({
@@ -207,7 +212,7 @@ export class LetterService {
   
                     <div style="color: #666; font-size: 0.9em; margin-top: 10px;">
                         <p>Cập nhật bởi: ${user.name}</p>
-                        <p>Cập nhật vào: ${moment(log.createdAt).format('DD/MM/YYYY HH:mm:ss')}</p>
+                        <p>Cập nhật vào: ${logTime}</p>
                     </div>
                 </div>
   
@@ -327,7 +332,7 @@ export class LetterService {
   async findOne(id: string): Promise<Letter> {
     const query = this.letterFind()
       .where('letter.id = :id', { id })
-      .orderBy('recipients.id', 'ASC');
+      .orderBy('recipients.order', 'ASC');
     const result = await query.getOne();
 
     return result;
@@ -387,11 +392,11 @@ export class LetterService {
         where: { id: In(userIds || []) },
       });
 
-      const recipientMap = recipientUsers.map((recipient) => ({
+      const recipientMap = userIds.map((userId, order) => ({
         letter: { id },
-        user: recipient,
-        description: recipients.find((e) => e.userId === recipient.id)
-          ?.description,
+        user: recipientUsers.find((e) => e.id === userId),
+        description: recipients.find((e) => e.userId === userId)?.description,
+        order,
       }));
 
       await this.recipientRepository.save(recipientMap);
