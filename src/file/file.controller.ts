@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { FileService } from './file.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateFileDto } from './dto/create-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
+import { FileService } from './file.service';
 
 @Controller('file')
 export class FileController {
@@ -14,6 +25,7 @@ export class FileController {
 
   @Get()
   findAll() {
+    return this.fileService.listFiles();
     return this.fileService.findAll();
   }
 
@@ -31,4 +43,14 @@ export class FileController {
   remove(@Param('id') id: string) {
     return this.fileService.remove(+id);
   }
+
+  @Post('/upload')
+  @UseInterceptors(FileInterceptor('file')) // 'file' là field name của file trong form
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    const publicUrl = await this.fileService.uploadFile(file);
+    return { url: publicUrl };
+  }
+
+  @Get('/list-file')
+  async listFiles() {}
 }
