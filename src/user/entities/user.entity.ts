@@ -83,10 +83,10 @@ export class User {
   @OneToMany(() => Task, (task) => task.user)
   tasks: Task[];
 
-  @OneToMany(() => Task, (auditLog) => auditLog.user)
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
   auditLogs: AuditLog[];
 
-  @OneToMany(() => Task, (notification) => notification.user)
+  @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 
   @OneToMany(() => LetterRecipient, (letterRecipient) => letterRecipient.user)

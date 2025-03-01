@@ -13,6 +13,7 @@ import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
 import { NotificationModule } from './notification/notification.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     LetterModule,
     NotificationModule,
     AuditLogModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

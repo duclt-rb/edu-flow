@@ -148,7 +148,13 @@ export class UserService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    await this.userRepository.remove(user);
+    await this.userRepository
+      .createQueryBuilder()
+      .delete()
+      .from(User)
+      .where('id = :id', { id })
+      .execute();
+
     return { message: `User with id ${id} has been removed` };
   }
 
