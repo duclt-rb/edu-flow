@@ -133,7 +133,7 @@ export class LetterService {
           letter: { id: result.id },
         }));
 
-        this.fileRepository.insert(fileModels);
+        await this.fileRepository.insert(fileModels);
       }
 
       return this.findOne(result.id);
@@ -152,6 +152,7 @@ export class LetterService {
     letter: Letter,
   ) {
     try {
+      return;
       const _email = uniqBy(email, 'email');
 
       const logTime = moment(log.createdAt)
@@ -316,7 +317,7 @@ export class LetterService {
       updateLetterDto;
 
     if (files) {
-      this.fileRepository.delete({ letter: { id } });
+      await this.fileRepository.delete({ letter: { id } });
 
       const fileModels = files.map((file) => ({
         name: file.name,
