@@ -1,5 +1,6 @@
 import { Directory } from 'src/directory/entities/directory.entity';
 import { Faculty } from 'src/faculty/entities/faculty.entity';
+import { File } from 'src/file/entities/file.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -125,4 +126,8 @@ export class Letter {
 
   @OneToMany(() => Task, (task) => task.letter)
   tasks: Task[];
+
+  @OneToMany(() => File, (file) => file.letter)
+  @JoinColumn({ name: 'reply_id' })
+  files: File[];
 }

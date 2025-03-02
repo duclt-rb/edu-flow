@@ -44,6 +44,16 @@ export class Recipients {
   description: string;
 }
 
+export class File {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  url: string;
+}
+
 export class LetterTask {
   @ApiProperty()
   @IsString()
@@ -143,7 +153,7 @@ export class CreateLetterDto {
   status: string;
 
   @ApiProperty()
-  @IsArray({})
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => LetterTask)
   @IsOptional()
@@ -153,4 +163,11 @@ export class CreateLetterDto {
   @IsArray()
   @IsOptional()
   signatures: any[];
+
+  @ApiProperty()
+  @IsArray()
+  @IsOptional()
+  @Type(() => File)
+  @ValidateNested({ each: true })
+  files: File[];
 }

@@ -12,6 +12,7 @@ import {
 import { JwtUser } from 'src/auth/jwt.strategy';
 import { Directory } from 'src/directory/entities/directory.entity';
 import { Faculty } from 'src/faculty/entities/faculty.entity';
+import { File } from 'src/file/entities/file.entity';
 import { User } from 'src/user/entities/user.entity';
 import { In, Not, Repository } from 'typeorm';
 import { CreateLetterDto, LetterForm } from './dto/create-letter.dto';
@@ -22,53 +23,6 @@ import { LetterRecipient } from './entities/letter-recipient.entity';
 import { Letter } from './entities/letter.entity';
 import { Signature } from './entities/signature.entity';
 import { Task } from './entities/task.entity';
-
-const selectColumn = {
-  id: true,
-  key: true,
-  title: true,
-  type: true,
-  form: true,
-  description: true,
-  status: true,
-  directory: {
-    id: true,
-    name: true,
-  },
-  sendingFaculty: {
-    id: true,
-    name: true,
-  },
-  receivingFaculty: {
-    id: true,
-    name: true,
-  },
-  recipients: {
-    id: true,
-    name: true,
-    email: true,
-  },
-  resolver: {
-    id: true,
-    name: true,
-    email: true,
-  },
-  dueDate: true,
-  relatedUsers: {
-    id: true,
-    name: true,
-    email: true,
-  },
-  sender: {
-    id: true,
-    name: true,
-    email: true,
-  },
-  archive: true,
-  delete: true,
-  createdAt: true,
-  updatedAt: true,
-};
 
 @Injectable()
 export class LetterService {
@@ -94,6 +48,9 @@ export class LetterService {
     @InjectRepository(Faculty)
     private readonly facultyRepository: Repository<Faculty>,
 
+    @InjectRepository(File)
+    private readonly fileRepository: Repository<File>,
+
     private readonly auditService: AuditLogService,
     private readonly mailerService: MailerService,
   ) {}
@@ -102,73 +59,87 @@ export class LetterService {
     createLetterDto: CreateLetterDto,
     user: JwtUser,
   ): Promise<Letter> {
-    const { relatedUserId, recipients, ...dto } = createLetterDto;
+    try {
+      const { relatedUserId, recipients, files, ...dto } = createLetterDto;
 
-    const relatedUsers = await this.userRepository.find({
-      select: ['id', 'name', 'email'],
-      where: { id: In(relatedUserId || []) },
-    });
-
-    const users = await this.userRepository.find({
-      select: ['id', 'name', 'email'],
-      where: { id: In(recipients?.map((e) => e.userId) || []) },
-    });
-
-    const sender = await this.userRepository.findOne({
-      select: ['id', 'name', 'email'],
-      where: { id: user.id },
-    });
-
-    const letter = this.letterRepository.create(dto);
-    letter.relatedUsers = relatedUsers;
-    letter.sender = sender;
-
-    const result = await this.letterRepository.save(letter);
-
-    if (!dto.key) {
-      const directory = await this.directoryRepository.findOneOrFail({
-        where: { id: dto.directoryId },
+      const relatedUsers = await this.userRepository.find({
+        select: ['id', 'name', 'email'],
+        where: { id: In(relatedUserId || []) },
       });
 
-      const faculty = await this.facultyRepository.findOneOrFail({
-        where: { id: dto.sendingFacultyId },
+      const users = await this.userRepository.find({
+        select: ['id', 'name', 'email'],
+        where: { id: In(recipients?.map((e) => e.userId) || []) },
       });
 
-      result.key = `${result.id}/${new Date().getFullYear()}/${directory.abbreviation}-${faculty.abbreviation}`;
-      await this.letterRepository.save(result);
+      const sender = await this.userRepository.findOne({
+        select: ['id', 'name', 'email'],
+        where: { id: user.id },
+      });
+
+      const letter = this.letterRepository.create(dto);
+      letter.relatedUsers = relatedUsers;
+      letter.sender = sender;
+
+      const result = await this.letterRepository.save(letter);
+
+      if (!dto.key) {
+        const directory = await this.directoryRepository.findOneOrFail({
+          where: { id: dto.directoryId },
+        });
+
+        const faculty = await this.facultyRepository.findOneOrFail({
+          where: { id: dto.sendingFacultyId },
+        });
+
+        result.key = `${result.id}/${new Date().getFullYear()}/${directory.abbreviation}-${faculty.abbreviation}`;
+        await this.letterRepository.save(result);
+      }
+
+      const recipientMap = users.map((recipient, order) => ({
+        letter: { id: result.id },
+        user: recipient,
+        description: recipients.find((e) => e.userId === recipient.id)
+          ?.description,
+        order,
+      }));
+
+      await this.recipientRepository.insert(recipientMap);
+
+      const log = await this.auditService.create({
+        action: AuditAction.CREATE,
+        entityId: result.id,
+        userId: user.id,
+        entityType: EntityType.LETTER,
+      });
+
+      const email = [
+        ...recipientMap.map((e) => ({
+          name: e.user.name,
+          email: e.user.email.replace(/\+[\d]+(?=@)/, ''),
+        })),
+        ...relatedUsers.map((e) => ({
+          name: e.name,
+          email: e.email.replace(/\+[\d]+(?=@)/, ''),
+        })),
+      ];
+
+      this.sendNotification(email, log, user, letter);
+
+      if (!isEmpty(files)) {
+        const fileModels = files.map((file) => ({
+          name: file.name,
+          url: file.url,
+          letter: { id: result.id },
+        }));
+
+        this.fileRepository.insert(fileModels);
+      }
+
+      return this.findOne(result.id);
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-
-    const recipientMap = users.map((recipient, order) => ({
-      letter: { id: result.id },
-      user: recipient,
-      description: recipients.find((e) => e.userId === recipient.id)
-        ?.description,
-      order,
-    }));
-
-    await this.recipientRepository.insert(recipientMap);
-
-    const log = await this.auditService.create({
-      action: AuditAction.CREATE,
-      entityId: result.id,
-      userId: user.id,
-      entityType: EntityType.LETTER,
-    });
-
-    const email = [
-      ...recipientMap.map((e) => ({
-        name: e.user.name,
-        email: e.user.email.replace(/\+[\d]+(?=@)/, ''),
-      })),
-      ...relatedUsers.map((e) => ({
-        name: e.name,
-        email: e.email.replace(/\+[\d]+(?=@)/, ''),
-      })),
-    ];
-
-    this.sendNotification(email, log, user, letter);
-
-    return this.findOne(result.id);
   }
 
   sendNotification(
@@ -238,6 +209,7 @@ export class LetterService {
       .leftJoinAndSelect('letter.resolver', 'resolver')
       .leftJoinAndSelect('letter.relatedUsers', 'relatedUsers')
       .leftJoinAndSelect('letter.recipients', 'recipients')
+      .leftJoinAndSelect('letter.files', 'files')
       .leftJoinAndSelect('recipients.user', 'recipientUser')
       .leftJoinAndSelect('letter.sender', 'sender')
       .leftJoin('letter.tasks', 'tasks')
@@ -283,6 +255,7 @@ export class LetterService {
         'tasks',
         'taskUser.id',
         'taskUser.name',
+        'files',
       ]);
   }
 
@@ -339,8 +312,20 @@ export class LetterService {
   }
 
   async update(id: string, updateLetterDto: UpdateLetterDto, user: JwtUser) {
-    const { relatedUserId, recipients, tasks, signatures, ...dto } =
+    const { relatedUserId, recipients, tasks, signatures, files, ...dto } =
       updateLetterDto;
+
+    if (files) {
+      this.fileRepository.delete({ letter: { id } });
+
+      const fileModels = files.map((file) => ({
+        name: file.name,
+        url: file.url,
+        letter: { id },
+      }));
+
+      this.fileRepository.insert(fileModels);
+    }
 
     if (!isEmpty(dto)) {
       await this.letterRepository.update(id, dto);

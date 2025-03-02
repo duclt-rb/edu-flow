@@ -4,6 +4,7 @@ import { AuditLogModule } from 'src/audit-log/audit-log.module';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
 import { DirectoryModule } from 'src/directory/directory.module';
 import { FacultyModule } from 'src/faculty/faculty.module';
+import { FileModule } from 'src/file/file.module';
 import { UserModule } from 'src/user/user.module';
 import { LetterRecipient } from './entities/letter-recipient.entity';
 import { Letter } from './entities/letter.entity';
@@ -19,6 +20,7 @@ import { LetterService } from './letter.service';
     DirectoryModule,
     FacultyModule,
     AuditLogModule,
+    FileModule,
   ],
   controllers: [LetterController],
   providers: [LetterService, JwtAuthGuard],
